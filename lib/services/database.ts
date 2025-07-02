@@ -445,7 +445,7 @@ export class DatabaseService {
   }
 
   // Add user note
-  static async addUserNote(debateId: string, content: string, important: boolean = false): Promise<boolean> {
+  static async addUserNote(debateId: string, content: string): Promise<boolean> {
     const client = this.getSupabaseClient();
     if (!client) {
       return false;
@@ -457,7 +457,6 @@ export class DatabaseService {
         .insert({
           debate_id: debateId,
           content,
-          important,
         });
 
       if (error) throw error;
@@ -488,7 +487,6 @@ export class DatabaseService {
         id: note.id,
         content: note.content,
         author: note.author,
-        important: note.important,
         timestamp: new Date(note.created_at),
       }));
     } catch (error) {

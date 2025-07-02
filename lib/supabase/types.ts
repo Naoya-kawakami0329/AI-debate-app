@@ -248,7 +248,6 @@ export interface Database {
           debate_id: string
           content: string
           author: string
-          important: boolean
           created_at: string
         }
         Insert: {
@@ -256,7 +255,6 @@ export interface Database {
           debate_id: string
           content: string
           author?: string
-          important?: boolean
           created_at?: string
         }
         Update: {
@@ -264,7 +262,6 @@ export interface Database {
           debate_id?: string
           content?: string
           author?: string
-          important?: boolean
           created_at?: string
         }
       }

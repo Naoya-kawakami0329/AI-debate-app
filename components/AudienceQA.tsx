@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, ThumbsUp, Send, BookOpen } from 'lucide-react';
+import { MessageCircle, Send, BookOpen } from 'lucide-react';
 import { AudienceQuestion } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';
@@ -67,10 +67,6 @@ export default function AudienceQA({ questions, onAddQuestion }: AudienceQAProps
               <p className="text-sm mb-2">{question.question}</p>
               
               <div className="flex items-center gap-2">
-                <Button variant="ghost" size="sm" className="h-6 px-2">
-                  <ThumbsUp className="h-3 w-3 mr-1" />
-                  重要
-                </Button>
                 {question.answered && (
                   <Badge variant="secondary" className="text-xs">
                     確認済み
