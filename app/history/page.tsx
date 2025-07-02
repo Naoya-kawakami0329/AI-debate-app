@@ -3,7 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, MessageCircle } from 'lucide-react';
@@ -71,7 +77,10 @@ export default function HistoryPage() {
               {isLoading ? (
                 // Loading skeleton
                 Array.from({ length: 5 }).map((_, index) => (
-                  <Card key={`debate-skeleton-${index}`} className="animate-pulse">
+                  <Card
+                    key={`debate-skeleton-${index}`}
+                    className="animate-pulse"
+                  >
                     <CardContent className="p-4">
                       <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
                       <div className="h-3 bg-gray-300 rounded w-1/2"></div>
@@ -85,7 +94,9 @@ export default function HistoryPage() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="font-semibold mb-2">{debate.topic}</h3>
+                            <h3 className="font-semibold mb-2">
+                              {debate.topic}
+                            </h3>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <span>🧠 {debate.models[0]}</span>
@@ -99,10 +110,18 @@ export default function HistoryPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <Badge variant={debate.winner === '引き分け' ? 'secondary' : 'default'}>
+                            <Badge
+                              variant={
+                                debate.winner === '引き分け'
+                                  ? 'secondary'
+                                  : 'default'
+                              }
+                            >
                               勝者: {debate.winner}
                             </Badge>
-                            <p className="text-sm text-muted-foreground mt-1">{debate.status}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {debate.status}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -111,7 +130,9 @@ export default function HistoryPage() {
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">まだディベートの履歴がありません</p>
+                  <p className="text-muted-foreground mb-4">
+                    まだディベートの履歴がありません
+                  </p>
                   <Button onClick={() => router.push('/setup')}>
                     新しいディベートを開始
                   </Button>

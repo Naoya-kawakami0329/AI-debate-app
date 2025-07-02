@@ -5,13 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { 
-  Play, 
-  Pause, 
+import {
+  Play,
+  Pause,
   ExternalLink,
   Clock,
   Volume2,
-  VolumeX
+  VolumeX,
 } from 'lucide-react';
 import { DebateState, DebateMessage, DebateStage } from '@/lib/types';
 import { DebateEngine } from '@/lib/debate-engine-new';
@@ -29,7 +29,11 @@ interface DebateViewerProps {
   onDebateSaved?: () => void;
 }
 
-export default function DebateViewer({ initialState, onBack, onDebateSaved }: DebateViewerProps) {
+export default function DebateViewer({
+  initialState,
+  onBack,
+  onDebateSaved,
+}: DebateViewerProps) {
   const [debateState, setDebateState] = useState<DebateState>(initialState);
   const [isPlaying, setIsPlaying] = useState(false);
   const [engine] = useState(new DebateEngine(initialState, true));
@@ -44,7 +48,7 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
     opening: 'オープニング',
     rebuttal: '反駁',
     closing: 'クロージング',
-    summary: 'サマリー'
+    summary: 'サマリー',
   };
 
   const stageProgress = {
@@ -52,7 +56,7 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
     opening: 25,
     rebuttal: 50,
     closing: 75,
-    summary: 100
+    summary: 100,
   };
 
   const speakMessage = async (content: string, speaker: 'pro' | 'con') => {
@@ -60,7 +64,7 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
 
     // 話者によって音声を変える
     const voice = speaker === 'pro' ? 'alloy' : 'echo';
-    
+
     try {
       await AudioService.synthesizeSpeech(content, { voice, speed: 0.9 });
     } catch (error) {
@@ -78,7 +82,6 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
     if (debateState.messages.length > lastMessageCountRef.current) {
       const newMessage = debateState.messages[debateState.messages.length - 1];
       if (newMessage) {
-        
         // 自動読み上げ
         if (autoSpeech) {
           speakMessage(newMessage.content, newMessage.speaker);
@@ -96,48 +99,53 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
     const generateNextMessage = async () => {
       try {
         // 現在のステージでのメッセージ数をチェック
-        const currentStageMessages = debateState.messages.filter(m => m.stage === debateState.stage);
-        
+        const currentStageMessages = debateState.messages.filter(
+          (m) => m.stage === debateState.stage
+        );
+
         // 各段階で4つのメッセージ（各側2回ずつ）に達している場合はスキップ
         if (currentStageMessages.length >= 4) {
-            return;
+          return;
         }
 
-        
         // 新しいメッセージを生成
         const newMessage = await engine.generateMessage(
           debateState.stage,
           debateState.currentSpeaker
         );
 
-        setDebateState(prev => {
+        setDebateState((prev) => {
           const updatedState = {
             ...prev,
             messages: [...prev.messages, newMessage],
-            currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as 'pro' | 'con'
+            currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as
+              | 'pro'
+              | 'con',
           };
 
           // 更新後のステージメッセージ数をチェック
-          const updatedStageMessages = updatedState.messages.filter(m => m.stage === prev.stage);
+          const updatedStageMessages = updatedState.messages.filter(
+            (m) => m.stage === prev.stage
+          );
 
           // 各段階で4つのメッセージ（各側2回ずつ）後に次の段階へ
           if (updatedStageMessages.length >= 4) {
             // 少し遅らせて次のステージに移行
             setTimeout(() => {
-              engine.nextStage().then(nextStage => {
+              engine.nextStage().then((nextStage) => {
                 if (nextStage === 'summary') {
                   const summary = engine.generateSummary();
-                  setDebateState(currentState => ({
+                  setDebateState((currentState) => ({
                     ...currentState,
                     stage: nextStage,
-                    summary
+                    summary,
                   }));
                   setIsPlaying(false);
                 } else {
-                  setDebateState(currentState => ({
+                  setDebateState((currentState) => ({
                     ...currentState,
                     stage: nextStage,
-                    currentSpeaker: 'pro' // 新しいステージは賛成側から開始
+                    currentSpeaker: 'pro', // 新しいステージは賛成側から開始
                   }));
                 }
               });
@@ -158,21 +166,22 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
 
   const togglePlayPause = () => {
     if (debateState.stage === 'setup') {
-      setDebateState(prev => ({ ...prev, stage: 'opening' }));
+      setDebateState((prev) => ({ ...prev, stage: 'opening' }));
     }
-    
+
     // ディベート開始時、自動読み上げが有効な場合は「ディベートを開始します」のメッセージを読み上げ
     if (!isPlaying && autoSpeech) {
       if (debateState.messages.length > 0) {
         // 既存メッセージがある場合は最後のメッセージを読み上げ
-        const lastMessage = debateState.messages[debateState.messages.length - 1];
+        const lastMessage =
+          debateState.messages[debateState.messages.length - 1];
         speakMessage(lastMessage.content, lastMessage.speaker);
       } else {
         // 初回開始時は開始アナウンス
         speakMessage('ディベートを開始します。', 'pro');
       }
     }
-    
+
     setIsPlaying(!isPlaying);
   };
 
@@ -189,10 +198,10 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
       winner,
       summary: engine.generateSummary(),
     };
-    
+
     setDebateState(updatedState);
     setHasVoted(true);
-    
+
     // Save debate to database using server action
     try {
       const result = await saveDebateAction(updatedState);
@@ -233,7 +242,11 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
             disabled={debateState.stage === 'summary'}
             className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
           >
-            {isPlaying ? <Pause className="h-4 w-4 mr-2" /> : <Play className="h-4 w-4 mr-2" />}
+            {isPlaying ? (
+              <Pause className="h-4 w-4 mr-2" />
+            ) : (
+              <Play className="h-4 w-4 mr-2" />
+            )}
             {isPlaying ? '一時停止' : '再生'}
           </Button>
         </div>
@@ -247,19 +260,27 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
           </CardTitle>
           <div className="flex justify-center gap-8">
             <div className="flex items-center gap-2">
-              <div className="text-2xl">{debateState.config.proModel.avatar}</div>
+              <div className="text-2xl">
+                {debateState.config.proModel.avatar}
+              </div>
               <div className="text-center">
-                <p className="font-semibold text-green-600">{debateState.config.proModel.name}</p>
+                <p className="font-semibold text-green-600">
+                  {debateState.config.proModel.name}
+                </p>
                 <p className="text-xs text-muted-foreground">賛成側</p>
               </div>
             </div>
             <div className="text-2xl">🥊</div>
             <div className="flex items-center gap-2">
               <div className="text-center">
-                <p className="font-semibold text-red-600">{debateState.config.conModel.name}</p>
+                <p className="font-semibold text-red-600">
+                  {debateState.config.conModel.name}
+                </p>
                 <p className="text-xs text-muted-foreground">反対側</p>
               </div>
-              <div className="text-2xl">{debateState.config.conModel.avatar}</div>
+              <div className="text-2xl">
+                {debateState.config.conModel.avatar}
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -309,7 +330,7 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
                 hasVoted={hasVoted}
                 winner={debateState.winner}
               />
-              
+
               {/* サマリーカード（投票後に表示） */}
               {hasVoted && debateState.winner && (
                 <SummaryCard
@@ -327,16 +348,23 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
                 {debateState.messages.map((message) => (
                   <MessageCard key={message.id} message={message} />
                 ))}
-                {isPlaying && (debateState.stage as DebateStage) !== 'summary' && (
-                  <div className="flex justify-center py-4">
-                    <div className="animate-pulse flex items-center gap-2 text-muted-foreground">
-                      <div className="h-2 w-2 bg-purple-600 rounded-full animate-bounce"></div>
-                      <div className="h-2 w-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                      <div className="h-2 w-2 bg-purple-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-                      <span className="ml-2">AIが考えています...</span>
+                {isPlaying &&
+                  (debateState.stage as DebateStage) !== 'summary' && (
+                    <div className="flex justify-center py-4">
+                      <div className="animate-pulse flex items-center gap-2 text-muted-foreground">
+                        <div className="h-2 w-2 bg-purple-600 rounded-full animate-bounce"></div>
+                        <div
+                          className="h-2 w-2 bg-purple-600 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.1s' }}
+                        ></div>
+                        <div
+                          className="h-2 w-2 bg-purple-600 rounded-full animate-bounce"
+                          style={{ animationDelay: '0.2s' }}
+                        ></div>
+                        <span className="ml-2">AIが考えています...</span>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
                 <div ref={messagesEndRef} />
               </div>
             </>
@@ -355,10 +383,19 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
             </CardHeader>
             <CardContent className="space-y-3">
               {debateState.messages
-                .flatMap((m, msgIndex) => m.evidence.map((e, evidIndex) => ({ ...e, messageIndex: msgIndex, evidenceIndex: evidIndex })))
+                .flatMap((m, msgIndex) =>
+                  m.evidence.map((e, evidIndex) => ({
+                    ...e,
+                    messageIndex: msgIndex,
+                    evidenceIndex: evidIndex,
+                  }))
+                )
                 .slice(-3)
                 .map((evidence, sliceIndex) => (
-                  <EvidenceCard key={`evidence-sidebar-${evidence.messageIndex}-${evidence.evidenceIndex}-${sliceIndex}-${evidence.url || evidence.title || ''}`} evidence={evidence} />
+                  <EvidenceCard
+                    key={`evidence-sidebar-${evidence.messageIndex}-${evidence.evidenceIndex}-${sliceIndex}-${evidence.url || evidence.title || ''}`}
+                    evidence={evidence}
+                  />
                 ))}
             </CardContent>
           </Card>
@@ -367,16 +404,19 @@ export default function DebateViewer({ initialState, onBack, onDebateSaved }: De
           <AudienceQA
             questions={debateState.audienceQuestions}
             onAddQuestion={(question) => {
-              setDebateState(prev => ({
+              setDebateState((prev) => ({
                 ...prev,
-                audienceQuestions: [...prev.audienceQuestions, {
-                  id: `q-${Date.now()}`,
-                  question,
-                  author: 'あなた',
-                  timestamp: new Date(),
-                  votes: 0,
-                  answered: false
-                }]
+                audienceQuestions: [
+                  ...prev.audienceQuestions,
+                  {
+                    id: `q-${Date.now()}`,
+                    question,
+                    author: 'あなた',
+                    timestamp: new Date(),
+                    votes: 0,
+                    answered: false,
+                  },
+                ],
               }));
             }}
           />

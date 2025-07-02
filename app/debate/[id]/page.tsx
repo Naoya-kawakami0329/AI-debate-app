@@ -9,7 +9,7 @@ export default function DebatePage() {
   const router = useRouter();
   const params = useParams();
   const debateId = params.id as string;
-  
+
   const [debateState, setDebateState] = useState<DebateState | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -18,11 +18,11 @@ export default function DebatePage() {
 
     // Try to load config from localStorage
     const savedConfig = localStorage.getItem(`debate-config-${debateId}`);
-    
+
     if (savedConfig) {
       try {
         const config: DebateConfig = JSON.parse(savedConfig);
-        
+
         const newDebate: DebateState = {
           id: debateId,
           config,
@@ -30,9 +30,9 @@ export default function DebatePage() {
           messages: [],
           audienceQuestions: [],
           startTime: new Date(),
-          currentSpeaker: 'pro'
+          currentSpeaker: 'pro',
         };
-        
+
         setDebateState(newDebate);
       } catch (error) {
         console.error('Failed to parse debate config:', error);
@@ -42,7 +42,7 @@ export default function DebatePage() {
       // No config found, redirect to home
       router.push('/');
     }
-    
+
     setLoading(false);
   }, [debateId, router]);
 
@@ -71,7 +71,7 @@ export default function DebatePage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <p className="text-gray-600 mb-4">ディベートが見つかりません</p>
-          <button 
+          <button
             onClick={handleBack}
             className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
           >
@@ -83,10 +83,10 @@ export default function DebatePage() {
   }
 
   return (
-    <DebateViewer 
-      initialState={debateState} 
-      onBack={handleBack} 
-      onDebateSaved={handleDebateSaved} 
+    <DebateViewer
+      initialState={debateState}
+      onBack={handleBack}
+      onDebateSaved={handleDebateSaved}
     />
   );
 }

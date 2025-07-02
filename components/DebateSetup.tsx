@@ -2,12 +2,25 @@
 
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Sparkles, Users, Clock, ArrowRight, TrendingUp, RefreshCw } from 'lucide-react';
+import {
+  Sparkles,
+  Users,
+  Clock,
+  ArrowRight,
+  TrendingUp,
+  RefreshCw,
+} from 'lucide-react';
 import { AIModel, DebateTopic, DebateConfig, TrendingTopic } from '@/lib/types';
 import { TrendsService } from '@/lib/services/trends';
 import { DatabaseService } from '@/lib/services/database';
@@ -35,14 +48,14 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
       id: 'custom',
       title: customTopic,
       description: 'カスタムトピック',
-      category: 'その他'
+      category: 'その他',
     };
 
     onStartDebate({
       topic,
       proModel,
       conModel,
-      duration
+      duration,
     });
   };
 
@@ -71,7 +84,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
         DatabaseService.getTopics(),
         DatabaseService.getAIModels(),
       ]);
-      
+
       // Use database data if available
       setAvailableTopics(topics);
       setAvailableModels(models);
@@ -89,9 +102,9 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
       title: `${trend.keyword}について議論する`,
       description: trend.description,
       category: trend.category,
-      trending: true
+      trending: true,
     };
-    
+
     // 同じトピックをクリックした場合は選択解除
     if (selectedTopic?.id === topic.id) {
       setSelectedTopic(null);
@@ -140,16 +153,20 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                   <Card
                     key={trend.keyword}
                     className={`cursor-pointer transition-all hover:shadow-md ${
-                      selectedTopic?.title?.includes(trend.keyword) ? 'ring-2 ring-green-500' : ''
+                      selectedTopic?.title?.includes(trend.keyword)
+                        ? 'ring-2 ring-green-500'
+                        : ''
                     }`}
                     onClick={() => selectTrendingTopic(trend)}
                   >
                     <CardContent className="p-3">
                       <div className="flex items-center justify-between mb-1">
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`text-xs ${
-                            trend.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'
+                            trend.trend.startsWith('+')
+                              ? 'text-green-600'
+                              : 'text-red-600'
                           }`}
                         >
                           {trend.trend}
@@ -158,8 +175,12 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                           {trend.source === 'Google Trends' ? '🔍' : '📰'}
                         </Badge>
                       </div>
-                      <h4 className="font-medium text-sm mb-1">{trend.keyword}</h4>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{trend.description}</p>
+                      <h4 className="font-medium text-sm mb-1">
+                        {trend.keyword}
+                      </h4>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {trend.description}
+                      </p>
                     </CardContent>
                   </Card>
                 ))}
@@ -172,38 +193,42 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
             <h3 className="font-semibold text-sm">推奨トピック</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {availableTopics.map((topic) => (
-              <Card
-                key={topic.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  selectedTopic?.id === topic.id ? 'ring-2 ring-blue-500' : ''
-                }`}
-                onClick={() => {
-                  if (selectedTopic?.id === topic.id) {
-                    // 同じトピックをクリックした場合は選択解除
-                    setSelectedTopic(null);
-                  } else {
-                    // 新しいトピックを選択
-                    setSelectedTopic(topic);
-                    setCustomTopic('');
-                  }
-                }}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-2">
-                    <Badge variant={topic.trending ? 'default' : 'secondary'}>
-                      {topic.category}
-                    </Badge>
-                    {topic.trending && (
-                      <Badge variant="destructive" className="text-xs">
-                        トレンド
+                <Card
+                  key={topic.id}
+                  className={`cursor-pointer transition-all hover:shadow-md ${
+                    selectedTopic?.id === topic.id ? 'ring-2 ring-blue-500' : ''
+                  }`}
+                  onClick={() => {
+                    if (selectedTopic?.id === topic.id) {
+                      // 同じトピックをクリックした場合は選択解除
+                      setSelectedTopic(null);
+                    } else {
+                      // 新しいトピックを選択
+                      setSelectedTopic(topic);
+                      setCustomTopic('');
+                    }
+                  }}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <Badge variant={topic.trending ? 'default' : 'secondary'}>
+                        {topic.category}
                       </Badge>
-                    )}
-                  </div>
-                  <h3 className="font-semibold text-sm mb-1">{topic.title}</h3>
-                  <p className="text-xs text-muted-foreground">{topic.description}</p>
-                </CardContent>
-              </Card>
-            ))}
+                      {topic.trending && (
+                        <Badge variant="destructive" className="text-xs">
+                          トレンド
+                        </Badge>
+                      )}
+                    </div>
+                    <h3 className="font-semibold text-sm mb-1">
+                      {topic.title}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {topic.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
 
@@ -252,8 +277,12 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">{model.avatar}</div>
                         <div>
-                          <h4 className="font-semibold text-sm">{model.name}</h4>
-                          <p className="text-xs text-muted-foreground">{model.description}</p>
+                          <h4 className="font-semibold text-sm">
+                            {model.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            {model.description}
+                          </p>
                         </div>
                       </div>
                     </CardContent>
@@ -278,8 +307,12 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                       <div className="flex items-center gap-3">
                         <div className="text-2xl">{model.avatar}</div>
                         <div>
-                          <h4 className="font-semibold text-sm">{model.name}</h4>
-                          <p className="text-xs text-muted-foreground">{model.description}</p>
+                          <h4 className="font-semibold text-sm">
+                            {model.name}
+                          </h4>
+                          <p className="text-xs text-muted-foreground">
+                            {model.description}
+                          </p>
                         </div>
                       </div>
                     </CardContent>

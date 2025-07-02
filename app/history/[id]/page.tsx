@@ -13,8 +13,10 @@ export default function HistoryDetailPage() {
   const router = useRouter();
   const params = useParams();
   const debateId = params.id as string;
-  
-  const [debateHistory, setDebateHistory] = useState<DebateHistory | null>(null);
+
+  const [debateHistory, setDebateHistory] = useState<DebateHistory | null>(
+    null
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -27,7 +29,7 @@ export default function HistoryDetailPage() {
     try {
       const result = await getRecentDebatesAction(100); // Load many to find the specific one
       if (result.success) {
-        const debate = result.debates.find(d => d.id === debateId);
+        const debate = result.debates.find((d) => d.id === debateId);
         if (debate) {
           setDebateHistory(debate);
         } else {
@@ -71,9 +73,7 @@ export default function HistoryDetailPage() {
             <Button onClick={handleBackToHistory} variant="outline">
               履歴一覧に戻る
             </Button>
-            <Button onClick={handleBackToHome}>
-              ホームに戻る
-            </Button>
+            <Button onClick={handleBackToHome}>ホームに戻る</Button>
           </div>
         </div>
       </div>
@@ -100,14 +100,18 @@ export default function HistoryDetailPage() {
             <div className="flex items-center gap-2">
               <div className="text-2xl">🧠</div>
               <div className="text-center">
-                <p className="font-semibold text-green-600">{debateHistory.models[0]}</p>
+                <p className="font-semibold text-green-600">
+                  {debateHistory.models[0]}
+                </p>
                 <p className="text-xs text-muted-foreground">賛成側</p>
               </div>
             </div>
             <div className="text-2xl">🥊</div>
             <div className="flex items-center gap-2">
               <div className="text-center">
-                <p className="font-semibold text-red-600">{debateHistory.models[1]}</p>
+                <p className="font-semibold text-red-600">
+                  {debateHistory.models[1]}
+                </p>
                 <p className="text-xs text-muted-foreground">反対側</p>
               </div>
               <div className="text-2xl">💎</div>
@@ -129,15 +133,18 @@ export default function HistoryDetailPage() {
               <p className="font-semibold text-lg">{debateHistory.status}</p>
             </div>
           </div>
-          
+
           {/* 基本情報 */}
           <div className="p-4 bg-muted rounded-lg mb-4">
             <p className="text-sm text-muted-foreground mb-2">作成日時</p>
             <p className="font-medium">
-              {debateHistory.createdAt ? 
-                format(new Date(debateHistory.createdAt), 'yyyy年M月d日 HH:mm', { locale: ja }) 
-                : '不明'
-              }
+              {debateHistory.createdAt
+                ? format(
+                    new Date(debateHistory.createdAt),
+                    'yyyy年M月d日 HH:mm',
+                    { locale: ja }
+                  )
+                : '不明'}
             </p>
           </div>
 
@@ -147,34 +154,56 @@ export default function HistoryDetailPage() {
               <h3 className="text-lg font-semibold">💬 ディベートの流れ</h3>
               <div className="space-y-3 max-h-[600px] overflow-y-auto">
                 {debateHistory.messages.map((message, index) => (
-                  <div key={`message-${message.id}-${index}`} className={`p-4 rounded-lg border ${
-                    message.speaker === 'pro' 
-                      ? 'bg-green-50 border-green-200' 
-                      : 'bg-red-50 border-red-200'
-                  }`}>
+                  <div
+                    key={`message-${message.id}-${index}`}
+                    className={`p-4 rounded-lg border ${
+                      message.speaker === 'pro'
+                        ? 'bg-green-50 border-green-200'
+                        : 'bg-red-50 border-red-200'
+                    }`}
+                  >
                     <div className="flex items-center gap-2 mb-2">
                       <div className="text-lg">
                         {message.speaker === 'pro' ? '🧠' : '💎'}
                       </div>
-                      <span className={`font-semibold ${
-                        message.speaker === 'pro' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {message.speaker === 'pro' ? debateHistory.models[0] : debateHistory.models[1]}
+                      <span
+                        className={`font-semibold ${
+                          message.speaker === 'pro'
+                            ? 'text-green-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {message.speaker === 'pro'
+                          ? debateHistory.models[0]
+                          : debateHistory.models[1]}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        ({message.stage === 'opening' ? 'オープニング' : 
-                          message.stage === 'rebuttal' ? '反駁' : 
-                          message.stage === 'closing' ? 'クロージング' : message.stage})
+                        (
+                        {message.stage === 'opening'
+                          ? 'オープニング'
+                          : message.stage === 'rebuttal'
+                            ? '反駁'
+                            : message.stage === 'closing'
+                              ? 'クロージング'
+                              : message.stage}
+                        )
                       </span>
                     </div>
                     <p className="text-sm leading-relaxed">{message.content}</p>
                     {message.evidence && message.evidence.length > 0 && (
                       <div className="mt-2 pt-2 border-t border-gray-200">
-                        <p className="text-xs text-muted-foreground mb-1">📄 参照資料:</p>
+                        <p className="text-xs text-muted-foreground mb-1">
+                          📄 参照資料:
+                        </p>
                         {message.evidence.map((evidence, evidenceIndex) => (
-                          <div key={`evidence-${message.id}-${evidenceIndex}`} className="text-xs bg-white p-2 rounded border">
+                          <div
+                            key={`evidence-${message.id}-${evidenceIndex}`}
+                            className="text-xs bg-white p-2 rounded border"
+                          >
                             <p className="font-medium">{evidence.title}</p>
-                            <p className="text-muted-foreground">{evidence.summary}</p>
+                            <p className="text-muted-foreground">
+                              {evidence.summary}
+                            </p>
                           </div>
                         ))}
                       </div>

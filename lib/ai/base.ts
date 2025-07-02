@@ -19,17 +19,17 @@ export interface DebateContext {
 
 export abstract class AIProvider {
   protected config: AIProviderConfig;
-  
+
   constructor(config: AIProviderConfig) {
     this.config = config;
   }
-  
+
   abstract generateDebateMessage(context: DebateContext): Promise<string>;
-  
+
   protected buildSystemPrompt(context: DebateContext): string {
     const positionText = context.position === 'pro' ? '賛成' : '反対';
     const stageInstructions = this.getStageInstructions(context.stage);
-    
+
     return `あなたは「${context.topic}」について${positionText}の立場でディベートを行う専門家です。
 
 現在のステージ: ${context.stage}
@@ -47,7 +47,7 @@ ${stageInstructions}
 - 1つの段落は3-4文で構成してください
 - 読みやすく、理解しやすい構造で論理を組み立ててください`;
   }
-  
+
   protected getStageInstructions(stage: DebateStage): string {
     switch (stage) {
       case 'opening':
@@ -60,23 +60,24 @@ ${stageInstructions}
         return '議論を続けてください。';
     }
   }
-  
+
   protected buildUserPrompt(context: DebateContext): string {
     if (context.previousMessages.length === 0) {
       return `「${context.topic}」について、あなたの${context.position === 'pro' ? '賛成' : '反対'}の立場から議論を始めてください。`;
     }
-    
+
     const lastOpponentMessage = [...context.previousMessages]
       .reverse()
-      .find(msg => msg.role !== context.position);
-    
+      .find((msg) => msg.role !== context.position);
+
     if (lastOpponentMessage) {
-      const stageContext = context.stage === 'opening' ? 
-        '初期段階として、' : 
-        context.stage === 'rebuttal' ? 
-        '相手の論点に反駁しつつ、' : 
-        '最終段階として、';
-      
+      const stageContext =
+        context.stage === 'opening'
+          ? '初期段階として、'
+          : context.stage === 'rebuttal'
+            ? '相手の論点に反駁しつつ、'
+            : '最終段階として、';
+
       return `${stageContext}相手の以下の主張に対して、具体的に反駁し、あなたの${context.position === 'pro' ? '賛成' : '反対'}の立場を強化してください：
 
 「${lastOpponentMessage.content}」
@@ -86,7 +87,7 @@ ${stageInstructions}
 2. 反証となるデータや事例があれば提示してください  
 3. あなたの立場を支持する新たな論点を追加してください`;
     }
-    
+
     return `議論を続けてください。`;
   }
 }

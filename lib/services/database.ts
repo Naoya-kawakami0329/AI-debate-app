@@ -1,5 +1,16 @@
-import { supabase, isSupabaseConfigured, createSupabaseAdmin } from '../supabase/client';
-import { DebateState, DebateMessage, AIModel, DebateTopic, TrendingTopic, AudienceQuestion } from '../types';
+import {
+  supabase,
+  isSupabaseConfigured,
+  createSupabaseAdmin,
+} from '../supabase/client';
+import {
+  DebateState,
+  DebateMessage,
+  AIModel,
+  DebateTopic,
+  TrendingTopic,
+  AudienceQuestion,
+} from '../types';
 
 export class DatabaseService {
   // Get the appropriate Supabase client (server-side for server actions, client-side for browser)
@@ -113,7 +124,7 @@ export class DatabaseService {
 
       if (error) throw error;
 
-      return data.map(topic => ({
+      return data.map((topic) => ({
         id: topic.id,
         title: topic.title,
         description: topic.description || '',
@@ -135,13 +146,16 @@ export class DatabaseService {
     }
 
     try {
-
       // First, ensure topic exists in database
       let topicId = await this.ensureTopicExists(debateState.config.topic);
-      
+
       // Ensure AI models exist in database
-      let proModelId = await this.ensureModelExists(debateState.config.proModel);
-      let conModelId = await this.ensureModelExists(debateState.config.conModel);
+      let proModelId = await this.ensureModelExists(
+        debateState.config.proModel
+      );
+      let conModelId = await this.ensureModelExists(
+        debateState.config.conModel
+      );
 
       // Save debate
       const { data: debateData, error: debateError } = await client
@@ -171,7 +185,7 @@ export class DatabaseService {
       if (debateState.messages.length > 0) {
         // For each message, ensure the model ID exists and get the correct DB ID
         const messagesData = await Promise.all(
-          debateState.messages.map(async message => {
+          debateState.messages.map(async (message) => {
             const dbModelId = await this.ensureModelExists(message.model);
             return {
               debate_id: debateId,
@@ -197,9 +211,9 @@ export class DatabaseService {
           for (let i = 0; i < debateState.messages.length; i++) {
             const message = debateState.messages[i];
             const savedMessage = savedMessages[i];
-            
+
             if (message.evidence.length > 0 && savedMessage) {
-              const evidenceData = message.evidence.map(evidence => ({
+              const evidenceData = message.evidence.map((evidence) => ({
                 message_id: savedMessage.id,
                 url: evidence.url,
                 title: evidence.title,
@@ -211,9 +225,12 @@ export class DatabaseService {
               const { error: evidenceError } = await client
                 .from('evidence')
                 .insert(evidenceData);
-              
+
               if (evidenceError) {
-                console.error('Error saving evidence for message:', evidenceError);
+                console.error(
+                  'Error saving evidence for message:',
+                  evidenceError
+                );
                 // Don't throw here to prevent failing the entire debate save
               }
             }
@@ -223,7 +240,7 @@ export class DatabaseService {
 
       // Save audience questions
       if (debateState.audienceQuestions.length > 0) {
-        const questionsData = debateState.audienceQuestions.map(question => ({
+        const questionsData = debateState.audienceQuestions.map((question) => ({
           debate_id: debateId,
           question: question.question,
           author: question.author,
@@ -256,7 +273,8 @@ export class DatabaseService {
     try {
       const { data, error } = await client
         .from('debates')
-        .select(`
+        .select(
+          `
           *,
           topics (title, category),
           pro_model:ai_models!debates_pro_model_id_fkey (name, avatar),
@@ -278,16 +296,20 @@ export class DatabaseService {
               credibility
             )
           )
-        `)
+        `
+        )
         .order('created_at', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
 
-      return data.map(debate => ({
+      return data.map((debate) => ({
         id: debate.id,
         topic: debate.topics?.title || 'Unknown Topic',
-        models: [debate.pro_model?.name || 'Unknown', debate.con_model?.name || 'Unknown'] as [string, string],
+        models: [
+          debate.pro_model?.name || 'Unknown',
+          debate.con_model?.name || 'Unknown',
+        ] as [string, string],
         duration: (() => {
           const startTime = new Date(debate.start_time || debate.created_at);
           const endTime = new Date(debate.end_time || debate.updated_at);
@@ -295,21 +317,31 @@ export class DatabaseService {
           const minutes = Math.floor(durationMs / 60000);
           return minutes > 0 ? `${minutes}分` : '1分未満';
         })(),
-        winner: debate.winner === 'pro' ? debate.pro_model?.name || 'Pro' :
-                debate.winner === 'con' ? debate.con_model?.name || 'Con' : '引き分け',
+        winner:
+          debate.winner === 'pro'
+            ? debate.pro_model?.name || 'Pro'
+            : debate.winner === 'con'
+              ? debate.con_model?.name || 'Con'
+              : '引き分け',
         status: debate.stage === 'summary' ? '完了' : '進行中',
         createdAt: debate.created_at,
-        messages: debate.debate_messages ? debate.debate_messages
-          .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-          .map((msg: any) => ({
-            id: msg.id,
-            speaker: msg.speaker,
-            content: msg.content,
-            stage: msg.stage,
-            reactions: msg.reactions,
-            timestamp: new Date(msg.created_at),
-            evidence: msg.evidence || []
-          })) : []
+        messages: debate.debate_messages
+          ? debate.debate_messages
+              .sort(
+                (a: any, b: any) =>
+                  new Date(a.created_at).getTime() -
+                  new Date(b.created_at).getTime()
+              )
+              .map((msg: any) => ({
+                id: msg.id,
+                speaker: msg.speaker,
+                content: msg.content,
+                stage: msg.stage,
+                reactions: msg.reactions,
+                timestamp: new Date(msg.created_at),
+                evidence: msg.evidence || [],
+              }))
+          : [],
       }));
     } catch (error) {
       console.error('Error fetching recent debates:', error);
@@ -329,10 +361,13 @@ export class DatabaseService {
       await client
         .from('trending_topics')
         .delete()
-        .lt('last_updated', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString());
+        .lt(
+          'last_updated',
+          new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString()
+        );
 
       // Insert new trending topics
-      const trendsData = trends.map(trend => ({
+      const trendsData = trends.map((trend) => ({
         keyword: trend.keyword,
         trend: trend.trend,
         source: trend.source,
@@ -343,9 +378,7 @@ export class DatabaseService {
         last_updated: trend.lastUpdated,
       }));
 
-      const { error } = await client
-        .from('trending_topics')
-        .insert(trendsData);
+      const { error } = await client.from('trending_topics').insert(trendsData);
 
       if (error) throw error;
     } catch (error) {
@@ -369,7 +402,7 @@ export class DatabaseService {
 
       if (error) throw error;
 
-      return data.map(trend => ({
+      return data.map((trend) => ({
         keyword: trend.keyword,
         trend: trend.trend,
         source: trend.source,
@@ -409,7 +442,7 @@ export class DatabaseService {
             name: model.name,
             provider: model.provider,
             description: model.description || '',
-            avatar: model.avatar || '🤖'
+            avatar: model.avatar || '🤖',
           });
         }
         return acc;
@@ -423,20 +456,22 @@ export class DatabaseService {
   }
 
   // Add audience question
-  static async addAudienceQuestion(debateId: string, question: string, author: string = 'Anonymous'): Promise<boolean> {
+  static async addAudienceQuestion(
+    debateId: string,
+    question: string,
+    author: string = 'Anonymous'
+  ): Promise<boolean> {
     const client = this.getSupabaseClient();
     if (!client) {
       return false;
     }
 
     try {
-      const { error } = await client
-        .from('audience_questions')
-        .insert({
-          debate_id: debateId,
-          question,
-          author,
-        });
+      const { error } = await client.from('audience_questions').insert({
+        debate_id: debateId,
+        question,
+        author,
+      });
 
       if (error) throw error;
       return true;
@@ -447,19 +482,20 @@ export class DatabaseService {
   }
 
   // Add user note
-  static async addUserNote(debateId: string, content: string): Promise<boolean> {
+  static async addUserNote(
+    debateId: string,
+    content: string
+  ): Promise<boolean> {
     const client = this.getSupabaseClient();
     if (!client) {
       return false;
     }
 
     try {
-      const { error } = await client
-        .from('user_notes')
-        .insert({
-          debate_id: debateId,
-          content,
-        });
+      const { error } = await client.from('user_notes').insert({
+        debate_id: debateId,
+        content,
+      });
 
       if (error) throw error;
       return true;
@@ -485,7 +521,7 @@ export class DatabaseService {
 
       if (error) throw error;
 
-      return data.map(note => ({
+      return data.map((note) => ({
         id: note.id,
         content: note.content,
         author: note.author,

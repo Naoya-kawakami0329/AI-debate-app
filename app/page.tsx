@@ -2,10 +2,23 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Clock, TrendingUp, MessageCircle, RefreshCw, Calendar } from 'lucide-react';
+import {
+  Play,
+  Clock,
+  TrendingUp,
+  MessageCircle,
+  RefreshCw,
+  Calendar,
+} from 'lucide-react';
 import { TrendingTopic, DebateHistory } from '@/lib/types';
 import { TrendsService } from '@/lib/services/trends';
 import { getRecentDebatesAction } from '@/lib/actions/debate-actions';
@@ -99,67 +112,89 @@ export default function Home() {
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                最終更新: {trendsLastUpdated ? format(new Date(trendsLastUpdated), 'M月d日 HH:mm', { locale: ja }) : '読み込み中...'}
+                最終更新:{' '}
+                {trendsLastUpdated
+                  ? format(new Date(trendsLastUpdated), 'M月d日 HH:mm', {
+                      locale: ja,
+                    })
+                  : '読み込み中...'}
               </div>
             </div>
             <CardDescription>
-              Google Trends と NewsAPI から取得した最新の話題トピック（毎日12:00 JST更新）
+              Google Trends と NewsAPI から取得した最新の話題トピック（毎日12:00
+              JST更新）
             </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {isLoadingTrends ? (
-                // Loading skeleton
-                Array.from({ length: 6 }).map((_, index) => (
-                  <div key={`skeleton-${index}`} className="p-4 bg-muted rounded-lg animate-pulse">
-                    <div className="h-4 bg-gray-300 rounded w-3/4 mb-3"></div>
-                    <div className="h-3 bg-gray-300 rounded w-1/2"></div>
-                  </div>
-                ))
-              ) : (
-                trendingTopics.map((item, index) => (
-                  <div key={`trending-${item.keyword}-${index}`} className="p-4 bg-muted rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-semibold text-sm">{item.keyword}</h3>
-                      <Badge 
-                        variant="secondary" 
-                        className={`text-xs font-bold ${
-                          item.trend.startsWith('+') ? 'text-green-600' : 'text-red-600'
-                        }`}
-                      >
-                        {item.trend}
-                      </Badge>
+              {isLoadingTrends
+                ? // Loading skeleton
+                  Array.from({ length: 6 }).map((_, index) => (
+                    <div
+                      key={`skeleton-${index}`}
+                      className="p-4 bg-muted rounded-lg animate-pulse"
+                    >
+                      <div className="h-4 bg-gray-300 rounded w-3/4 mb-3"></div>
+                      <div className="h-3 bg-gray-300 rounded w-1/2"></div>
                     </div>
-                    
-                    <div className="flex items-center justify-between">
-                      <Badge 
-                        variant="outline" 
-                        className={`text-xs ${
-                          item.source === 'Google Trends' 
-                            ? 'border-blue-500 text-blue-600' 
-                            : 'border-green-500 text-green-600'
-                        }`}
-                      >
-                        {item.source === 'Google Trends' ? '🔍 Trends' : '📰 News'}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {item.category}
-                      </span>
+                  ))
+                : trendingTopics.map((item, index) => (
+                    <div
+                      key={`trending-${item.keyword}-${index}`}
+                      className="p-4 bg-muted rounded-lg hover:shadow-md transition-shadow cursor-pointer"
+                    >
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="font-semibold text-sm">
+                          {item.keyword}
+                        </h3>
+                        <Badge
+                          variant="secondary"
+                          className={`text-xs font-bold ${
+                            item.trend.startsWith('+')
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          {item.trend}
+                        </Badge>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <Badge
+                          variant="outline"
+                          className={`text-xs ${
+                            item.source === 'Google Trends'
+                              ? 'border-blue-500 text-blue-600'
+                              : 'border-green-500 text-green-600'
+                          }`}
+                        >
+                          {item.source === 'Google Trends'
+                            ? '🔍 Trends'
+                            : '📰 News'}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {item.category}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                ))
-              )}
+                  ))}
             </div>
-            
+
             {/* データソース説明 */}
             <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
               <div className="flex items-start gap-2">
                 <TrendingUp className="h-4 w-4 text-blue-600 mt-0.5" />
                 <div className="text-sm">
-                  <p className="font-medium text-blue-800 mb-1">トレンド率について</p>
+                  <p className="font-medium text-blue-800 mb-1">
+                    トレンド率について
+                  </p>
                   <ul className="text-blue-700 space-y-1">
-                    <li>• <strong>🔍 Trends</strong>: Google検索の前日比増減率</li>
-                    <li>• <strong>📰 News</strong>: ニュース言及の前日比増減率</li>
+                    <li>
+                      • <strong>🔍 Trends</strong>: Google検索の前日比増減率
+                    </li>
+                    <li>
+                      • <strong>📰 News</strong>: ニュース言及の前日比増減率
+                    </li>
                     <li>• 毎日12:00 JST に自動更新（Cronジョブ）</li>
                   </ul>
                 </div>
@@ -191,7 +226,10 @@ export default function Home() {
               {isLoadingDebates ? (
                 // Loading skeleton
                 Array.from({ length: 3 }).map((_, index) => (
-                  <Card key={`debate-skeleton-${index}`} className="animate-pulse">
+                  <Card
+                    key={`debate-skeleton-${index}`}
+                    className="animate-pulse"
+                  >
                     <CardContent className="p-4">
                       <div className="h-4 bg-gray-300 rounded w-3/4 mb-2"></div>
                       <div className="h-3 bg-gray-300 rounded w-1/2"></div>
@@ -205,7 +243,9 @@ export default function Home() {
                       <CardContent className="p-4">
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
-                            <h3 className="font-semibold mb-2">{debate.topic}</h3>
+                            <h3 className="font-semibold mb-2">
+                              {debate.topic}
+                            </h3>
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <span>🧠 {debate.models[0]}</span>
@@ -219,10 +259,18 @@ export default function Home() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <Badge variant={debate.winner === '引き分け' ? 'secondary' : 'default'}>
+                            <Badge
+                              variant={
+                                debate.winner === '引き分け'
+                                  ? 'secondary'
+                                  : 'default'
+                              }
+                            >
                               勝者: {debate.winner}
                             </Badge>
-                            <p className="text-sm text-muted-foreground mt-1">{debate.status}</p>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              {debate.status}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -231,7 +279,9 @@ export default function Home() {
                 ))
               ) : (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground mb-4">まだディベートの履歴がありません</p>
+                  <p className="text-muted-foreground mb-4">
+                    まだディベートの履歴がありません
+                  </p>
                   <Link href="/setup">
                     <Button>新しいディベートを開始</Button>
                   </Link>

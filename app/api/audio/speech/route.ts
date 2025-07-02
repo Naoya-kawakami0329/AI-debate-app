@@ -12,14 +12,11 @@ const openai = new OpenAI({
 export async function POST(request: NextRequest) {
   try {
     const { text, voice = 'alloy', speed = 1.0 } = await request.json();
-    
+
     if (!text) {
-      return NextResponse.json(
-        { error: 'Text is required' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Text is required' }, { status: 400 });
     }
-    
+
     if (!process.env.OPENAI_API_KEY) {
       // Fallback to browser's speech synthesis indicator
       return NextResponse.json(
@@ -27,7 +24,7 @@ export async function POST(request: NextRequest) {
         { status: 501 }
       );
     }
-    
+
     // Generate speech using OpenAI TTS
     const mp3 = await openai.audio.speech.create({
       model: 'tts-1',
@@ -35,10 +32,10 @@ export async function POST(request: NextRequest) {
       input: text,
       speed: speed,
     });
-    
+
     // Convert to buffer
     const buffer = Buffer.from(await mp3.arrayBuffer());
-    
+
     // Return audio as response
     return new NextResponse(buffer, {
       status: 200,

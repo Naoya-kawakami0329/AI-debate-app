@@ -7,7 +7,7 @@ import { ClaudeProvider } from './claude-provider';
 export class AIProviderFactory {
   static create(model: AIModel): AIProvider {
     const apiKey = this.getApiKey(model.provider);
-    
+
     switch (model.provider) {
       case 'openai':
         return new OpenAIProvider({
@@ -16,7 +16,7 @@ export class AIProviderFactory {
           temperature: 0.7,
           maxTokens: 800,
         });
-        
+
       case 'gemini':
         return new GeminiProvider({
           apiKey,
@@ -24,7 +24,7 @@ export class AIProviderFactory {
           temperature: 0.7,
           maxTokens: 800,
         });
-        
+
       case 'claude':
         return new ClaudeProvider({
           apiKey,
@@ -32,15 +32,15 @@ export class AIProviderFactory {
           temperature: 0.7,
           maxTokens: 800,
         });
-        
+
       default:
         throw new Error(`Unsupported AI provider: ${model.provider}`);
     }
   }
-  
+
   private static getApiKey(provider: 'openai' | 'gemini' | 'claude'): string {
     let apiKey: string | undefined;
-    
+
     switch (provider) {
       case 'openai':
         apiKey = process.env.OPENAI_API_KEY;
@@ -52,11 +52,11 @@ export class AIProviderFactory {
         apiKey = process.env.ANTHROPIC_API_KEY;
         break;
     }
-    
+
     if (!apiKey) {
       throw new Error(`API key for ${provider} is not configured`);
     }
-    
+
     return apiKey;
   }
 }

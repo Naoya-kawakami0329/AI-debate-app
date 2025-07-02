@@ -6,7 +6,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'AI vs AI ディベート観戦',
-  description: 'AIモデル同士の白熱した議論を観戦し、知識を深めるアプリケーション',
+  description:
+    'AIモデル同士の白熱した議論を観戦し、知識を深めるアプリケーション',
 };
 
 export default function RootLayout({

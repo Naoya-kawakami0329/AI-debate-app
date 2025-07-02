@@ -15,8 +15,16 @@ interface VotingCardProps {
   winner?: 'pro' | 'con' | 'draw';
 }
 
-export default function VotingCard({ proModel, conModel, onVote, hasVoted, winner }: VotingCardProps) {
-  const [selectedVote, setSelectedVote] = useState<'pro' | 'con' | 'draw' | null>(null);
+export default function VotingCard({
+  proModel,
+  conModel,
+  onVote,
+  hasVoted,
+  winner,
+}: VotingCardProps) {
+  const [selectedVote, setSelectedVote] = useState<
+    'pro' | 'con' | 'draw' | null
+  >(null);
 
   const handleVote = () => {
     if (selectedVote) {
@@ -30,18 +38,18 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
         return {
           title: '引き分け',
           description: '両者互角の議論でした',
-          color: 'text-yellow-600'
+          color: 'text-yellow-600',
         };
       }
-      
+
       const winnerModel = winner === 'pro' ? proModel : conModel;
-      
+
       return {
         title: `${winnerModel.name} の勝利！`,
         description: `${winner === 'pro' ? '賛成側' : '反対側'}の勝利`,
         color: winner === 'pro' ? 'text-green-600' : 'text-red-600',
         winnerModel,
-        loserModel: winner === 'pro' ? conModel : proModel
+        loserModel: winner === 'pro' ? conModel : proModel,
       };
     };
 
@@ -60,25 +68,34 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
             あなたの判定: {winnerInfo.description}
           </Badge>
         </CardHeader>
-        
+
         {winner !== 'draw' && (
           <CardContent className="text-center">
             <div className="flex justify-center items-center gap-8 mb-4">
               <div className="text-center">
-                <div className="text-4xl mb-2">{winnerInfo.winnerModel?.avatar}</div>
-                <div className="font-semibold">{winnerInfo.winnerModel?.name}</div>
+                <div className="text-4xl mb-2">
+                  {winnerInfo.winnerModel?.avatar}
+                </div>
+                <div className="font-semibold">
+                  {winnerInfo.winnerModel?.name}
+                </div>
                 <Badge className="mt-1">勝者</Badge>
               </div>
-              
+
               <div className="text-2xl">🥊</div>
-              
+
               <div className="text-center opacity-60">
-                <div className="text-4xl mb-2">{winnerInfo.loserModel?.avatar}</div>
-                <div className="font-semibold">{winnerInfo.loserModel?.name}</div>
-                <Badge variant="outline" className="mt-1">敗者</Badge>
+                <div className="text-4xl mb-2">
+                  {winnerInfo.loserModel?.avatar}
+                </div>
+                <div className="font-semibold">
+                  {winnerInfo.loserModel?.name}
+                </div>
+                <Badge variant="outline" className="mt-1">
+                  敗者
+                </Badge>
               </div>
             </div>
-            
           </CardContent>
         )}
       </Card>
@@ -102,15 +119,21 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
           {/* 賛成側 */}
           <div
             className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-              selectedVote === 'pro' ? 'border-green-500 bg-green-50' : 'border-gray-200'
+              selectedVote === 'pro'
+                ? 'border-green-500 bg-green-50'
+                : 'border-gray-200'
             }`}
             onClick={() => setSelectedVote('pro')}
           >
             <div className="flex items-center gap-3">
               <div className="text-2xl">{proModel.avatar}</div>
               <div className="flex-1">
-                <div className="font-semibold text-green-600">{proModel.name}</div>
-                <div className="text-sm text-muted-foreground">賛成側の勝利</div>
+                <div className="font-semibold text-green-600">
+                  {proModel.name}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  賛成側の勝利
+                </div>
               </div>
               {selectedVote === 'pro' && (
                 <div className="w-4 h-4 bg-green-500 rounded-full"></div>
@@ -121,15 +144,21 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
           {/* 反対側 */}
           <div
             className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-              selectedVote === 'con' ? 'border-red-500 bg-red-50' : 'border-gray-200'
+              selectedVote === 'con'
+                ? 'border-red-500 bg-red-50'
+                : 'border-gray-200'
             }`}
             onClick={() => setSelectedVote('con')}
           >
             <div className="flex items-center gap-3">
               <div className="text-2xl">{conModel.avatar}</div>
               <div className="flex-1">
-                <div className="font-semibold text-red-600">{conModel.name}</div>
-                <div className="text-sm text-muted-foreground">反対側の勝利</div>
+                <div className="font-semibold text-red-600">
+                  {conModel.name}
+                </div>
+                <div className="text-sm text-muted-foreground">
+                  反対側の勝利
+                </div>
               </div>
               {selectedVote === 'con' && (
                 <div className="w-4 h-4 bg-red-500 rounded-full"></div>
@@ -140,7 +169,9 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
           {/* 引き分け */}
           <div
             className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-              selectedVote === 'draw' ? 'border-yellow-500 bg-yellow-50' : 'border-gray-200'
+              selectedVote === 'draw'
+                ? 'border-yellow-500 bg-yellow-50'
+                : 'border-gray-200'
             }`}
             onClick={() => setSelectedVote('draw')}
           >
@@ -148,7 +179,9 @@ export default function VotingCard({ proModel, conModel, onVote, hasVoted, winne
               <div className="text-2xl">🤝</div>
               <div className="flex-1">
                 <div className="font-semibold text-yellow-600">引き分け</div>
-                <div className="text-sm text-muted-foreground">両者互角の議論</div>
+                <div className="text-sm text-muted-foreground">
+                  両者互角の議論
+                </div>
               </div>
               {selectedVote === 'draw' && (
                 <div className="w-4 h-4 bg-yellow-500 rounded-full"></div>

@@ -25,26 +25,25 @@ interface NewsAPIResult {
 export async function POST(request: NextRequest) {
   try {
     const { query, topic } = await request.json();
-    
+
     if (!query || !topic) {
       return NextResponse.json(
         { error: 'Query and topic are required' },
         { status: 400 }
       );
     }
-    
-    
+
     // Collect evidence from multiple sources
     const evidencePromises = [
       searchWithNewsAPI(query, topic),
       searchWithWikipedia(query, topic),
       searchWithGoogleCustomSearch(query, topic),
     ];
-    
+
     try {
       const results = await Promise.allSettled(evidencePromises);
       let allEvidence: Evidence[] = [];
-      
+
       // Combine results from all sources
       results.forEach((result, index) => {
         const sourceName = ['NewsAPI', 'Wikipedia', 'Google'][index];
@@ -53,21 +52,20 @@ export async function POST(request: NextRequest) {
         } else {
         }
       });
-      
+
       // If we have real evidence, prioritize by credibility and recency
       if (allEvidence.length > 0) {
         const sortedEvidence = allEvidence
           .sort((a, b) => b.credibility - a.credibility)
           .slice(0, 5); // Take top 5 most credible
-        
+
         return NextResponse.json({ evidence: sortedEvidence });
       }
-      
+
       // Fallback to enhanced mock evidence if no real sources work
       return NextResponse.json({
         evidence: getMockEvidence(query, topic),
       });
-      
     } catch (error) {
       console.error('Error during multi-source search:', error);
       return NextResponse.json({
@@ -84,12 +82,15 @@ export async function POST(request: NextRequest) {
 }
 
 // Search with NewsAPI
-async function searchWithNewsAPI(query: string, topic: string): Promise<Evidence[]> {
+async function searchWithNewsAPI(
+  query: string,
+  topic: string
+): Promise<Evidence[]> {
   const newsApiKey = process.env.NEWS_API_KEY;
   if (!newsApiKey) {
     throw new Error('NewsAPI key not configured');
   }
-  
+
   const searchQuery = `${topic} ${query}`;
   const response = await axios.get('https://newsapi.org/v2/everything', {
     params: {
@@ -101,9 +102,9 @@ async function searchWithNewsAPI(query: string, topic: string): Promise<Evidence
       domains: 'nhk.or.jp,nikkei.com,asahi.com,mainichi.jp,yomiuri.co.jp',
     },
   });
-  
+
   const articles: NewsAPIResult[] = response.data.articles || [];
-  
+
   return articles.map((article, index) => ({
     id: `news-${Date.now()}-${index}`,
     url: article.url,
@@ -115,9 +116,12 @@ async function searchWithNewsAPI(query: string, topic: string): Promise<Evidence
 }
 
 // Search with Wikipedia API
-async function searchWithWikipedia(query: string, topic: string): Promise<Evidence[]> {
+async function searchWithWikipedia(
+  query: string,
+  topic: string
+): Promise<Evidence[]> {
   const searchQuery = `${topic} ${query}`;
-  
+
   // First, search for page titles
   const searchResponse = await axios.get('https://ja.wikipedia.org/w/api.php', {
     params: {
@@ -129,34 +133,37 @@ async function searchWithWikipedia(query: string, topic: string): Promise<Eviden
       origin: '*',
     },
   });
-  
+
   const searchResults = searchResponse.data.query?.search || [];
-  
+
   if (searchResults.length === 0) {
     throw new Error('No Wikipedia results found');
   }
-  
+
   // Get page content for the top results
   const evidence: Evidence[] = [];
-  
+
   for (const result of searchResults.slice(0, 2)) {
     try {
-      const contentResponse = await axios.get('https://ja.wikipedia.org/w/api.php', {
-        params: {
-          action: 'query',
-          format: 'json',
-          prop: 'extracts',
-          titles: result.title,
-          exintro: true,
-          explaintext: true,
-          exsectionformat: 'plain',
-          origin: '*',
-        },
-      });
-      
+      const contentResponse = await axios.get(
+        'https://ja.wikipedia.org/w/api.php',
+        {
+          params: {
+            action: 'query',
+            format: 'json',
+            prop: 'extracts',
+            titles: result.title,
+            exintro: true,
+            explaintext: true,
+            exsectionformat: 'plain',
+            origin: '*',
+          },
+        }
+      );
+
       const pages = contentResponse.data.query?.pages || {};
       const page = Object.values(pages)[0] as any;
-      
+
       if (page && page.extract) {
         evidence.push({
           id: `wiki-${Date.now()}-${result.pageid}`,
@@ -171,32 +178,38 @@ async function searchWithWikipedia(query: string, topic: string): Promise<Eviden
       console.error('Error fetching Wikipedia content:', error);
     }
   }
-  
+
   return evidence;
 }
 
 // Search with Google Custom Search (original implementation)
-async function searchWithGoogleCustomSearch(query: string, topic: string): Promise<Evidence[]> {
+async function searchWithGoogleCustomSearch(
+  query: string,
+  topic: string
+): Promise<Evidence[]> {
   const searchApiKey = process.env.GOOGLE_SEARCH_API_KEY;
   const searchEngineId = process.env.GOOGLE_SEARCH_ENGINE_ID;
-  
+
   if (!searchApiKey || !searchEngineId) {
     throw new Error('Google Search API not configured');
   }
-  
+
   const searchQuery = `${topic} ${query} site:gov.jp OR site:go.jp OR site:ac.jp`;
-  const response = await axios.get('https://www.googleapis.com/customsearch/v1', {
-    params: {
-      key: searchApiKey,
-      cx: searchEngineId,
-      q: searchQuery,
-      num: 3,
-      hl: 'ja',
-    },
-  });
-  
+  const response = await axios.get(
+    'https://www.googleapis.com/customsearch/v1',
+    {
+      params: {
+        key: searchApiKey,
+        cx: searchEngineId,
+        q: searchQuery,
+        num: 3,
+        hl: 'ja',
+      },
+    }
+  );
+
   const searchResults: SearchResult[] = response.data.items || [];
-  
+
   return searchResults.map((result, index) => ({
     id: `google-${Date.now()}-${index}`,
     url: result.link,
@@ -231,19 +244,19 @@ function calculateCredibility(source: string): number {
     'nature.com': 98,
     'science.org': 98,
   };
-  
+
   for (const [domain, score] of Object.entries(credibilityScores)) {
     if (source.includes(domain)) {
       return score;
     }
   }
-  
+
   // Default scoring based on domain type
   if (source.includes('.gov.') || source.includes('.go.')) return 95;
   if (source.includes('.ac.') || source.includes('.edu.')) return 90;
   if (source.includes('.or.jp')) return 85;
   if (source.includes('.co.jp')) return 75;
-  
+
   return 65; // Default credibility
 }
 
@@ -299,12 +312,12 @@ function getMockEvidence(query: string, topic: string): Evidence[] {
       credibility: 90,
     },
   ];
-  
+
   // Select 3-4 diverse evidence items with realistic variety
   const numEvidence = Math.floor(Math.random() * 2) + 3; // 3-4 items
   const shuffled = mockSources.sort(() => 0.5 - Math.random());
   const selected = shuffled.slice(0, numEvidence);
-  
+
   return selected.map((item, index) => ({
     id: `mock-evidence-${Date.now()}-${index}`,
     url: `https://${item.source}/${generateRealisticPath(item.source, topic)}`,
@@ -316,14 +329,15 @@ function getMockEvidence(query: string, topic: string): Evidence[] {
 }
 
 function generateRealisticPath(source: string, topic: string): string {
-  const topicSlug = topic.toLowerCase()
+  const topicSlug = topic
+    .toLowerCase()
     .replace(/[^a-zA-Z0-9ひらがなカタカナ漢字]/g, '-')
     .replace(/-+/g, '-')
     .trim();
-  
+
   const timestamp = Date.now();
   const random = Math.random().toString(36).substring(2, 8);
-  
+
   if (source.includes('wikipedia')) {
     return `wiki/${encodeURIComponent(topic)}`;
   } else if (source.includes('gov.jp') || source.includes('go.jp')) {

@@ -15,7 +15,10 @@ interface AudienceQAProps {
   onAddQuestion: (question: string) => void;
 }
 
-export default function AudienceQA({ questions, onAddQuestion }: AudienceQAProps) {
+export default function AudienceQA({
+  questions,
+  onAddQuestion,
+}: AudienceQAProps) {
   const [newQuestion, setNewQuestion] = useState('');
 
   const handleSubmit = () => {
@@ -42,9 +45,9 @@ export default function AudienceQA({ questions, onAddQuestion }: AudienceQAProps
             onChange={(e) => setNewQuestion(e.target.value)}
             className="min-h-[80px] text-sm"
           />
-          <Button 
+          <Button
             onClick={handleSubmit}
-            size="sm" 
+            size="sm"
             className="w-full"
             disabled={!newQuestion.trim()}
           >
@@ -55,27 +58,33 @@ export default function AudienceQA({ questions, onAddQuestion }: AudienceQAProps
 
         {/* メモ一覧 */}
         <div className="space-y-3 max-h-[300px] overflow-y-auto">
-          {questions.slice(-5).reverse().map((question) => (
-            <div key={question.id} className="p-3 bg-muted rounded-lg">
-              <div className="flex items-start justify-between mb-2">
-                <span className="font-medium text-sm">{question.author}</span>
-                <span className="text-xs text-muted-foreground">
-                  {formatDistanceToNow(question.timestamp, { addSuffix: true, locale: ja })}
-                </span>
+          {questions
+            .slice(-5)
+            .reverse()
+            .map((question) => (
+              <div key={question.id} className="p-3 bg-muted rounded-lg">
+                <div className="flex items-start justify-between mb-2">
+                  <span className="font-medium text-sm">{question.author}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {formatDistanceToNow(question.timestamp, {
+                      addSuffix: true,
+                      locale: ja,
+                    })}
+                  </span>
+                </div>
+
+                <p className="text-sm mb-2">{question.question}</p>
+
+                <div className="flex items-center gap-2">
+                  {question.answered && (
+                    <Badge variant="secondary" className="text-xs">
+                      確認済み
+                    </Badge>
+                  )}
+                </div>
               </div>
-              
-              <p className="text-sm mb-2">{question.question}</p>
-              
-              <div className="flex items-center gap-2">
-                {question.answered && (
-                  <Badge variant="secondary" className="text-xs">
-                    確認済み
-                  </Badge>
-                )}
-              </div>
-            </div>
-          ))}
-          
+            ))}
+
           {questions.length === 0 && (
             <p className="text-sm text-muted-foreground text-center py-4">
               ディベートを見ながら気になった点をメモしてみましょう

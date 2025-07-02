@@ -8,9 +8,13 @@ interface EvidenceCardProps {
 }
 
 export default function EvidenceCard({ evidence }: EvidenceCardProps) {
-  const credibilityColor = evidence.credibility > 0.8 ? 'bg-green-500' : 
-                          evidence.credibility > 0.6 ? 'bg-yellow-500' : 'bg-red-500';
-  
+  const credibilityColor =
+    evidence.credibility > 0.8
+      ? 'bg-green-500'
+      : evidence.credibility > 0.6
+        ? 'bg-yellow-500'
+        : 'bg-red-500';
+
   return (
     <Card className="transition-all hover:shadow-md cursor-pointer">
       <CardContent className="p-3">
@@ -25,15 +29,15 @@ export default function EvidenceCard({ evidence }: EvidenceCardProps) {
             </span>
           </div>
         </div>
-        
+
         <h4 className="font-semibold text-sm mb-1 line-clamp-2">
           {evidence.title}
         </h4>
-        
+
         <p className="text-xs text-muted-foreground mb-2 line-clamp-2">
           {evidence.snippet}
         </p>
-        
+
         <div className="flex items-center justify-between">
           <ExternalLink className="h-3 w-3 text-muted-foreground" />
           <span className="text-xs text-blue-600 hover:underline">

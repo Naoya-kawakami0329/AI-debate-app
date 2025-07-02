@@ -3,14 +3,14 @@ import { AIProvider, AIProviderConfig, DebateContext } from './base';
 
 export class ClaudeProvider extends AIProvider {
   private client: Anthropic;
-  
+
   constructor(config: AIProviderConfig) {
     super(config);
     this.client = new Anthropic({
       apiKey: config.apiKey,
     });
   }
-  
+
   async generateDebateMessage(context: DebateContext): Promise<string> {
     try {
       const message = await this.client.messages.create({
@@ -25,12 +25,12 @@ export class ClaudeProvider extends AIProvider {
           },
         ],
       });
-      
+
       const content = message.content[0];
       if (content.type === 'text') {
         return content.text;
       }
-      
+
       return '申し訳ございません。応答を生成できませんでした。';
     } catch (error) {
       console.error('Claude API Error:', error);

@@ -10,8 +10,12 @@ interface SummaryCardProps {
   conModel: AIModel;
 }
 
-export default function SummaryCard({ summary, 
-  winner, proModel, conModel }: SummaryCardProps) {
+export default function SummaryCard({
+  summary,
+  winner,
+  proModel,
+  conModel,
+}: SummaryCardProps) {
   return (
     <div className="space-y-6">
       {/* サマリー */}
@@ -35,7 +39,7 @@ export default function SummaryCard({ summary,
             <div className="text-sm text-muted-foreground">総発言数</div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="pt-6 text-center">
             <div className="text-2xl font-bold text-green-600">8</div>

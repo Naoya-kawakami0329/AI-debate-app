@@ -55,7 +55,12 @@ export interface AudienceQuestion {
   answered: boolean;
 }
 
-export type DebateStage = 'setup' | 'opening' | 'rebuttal' | 'closing' | 'summary';
+export type DebateStage =
+  | 'setup'
+  | 'opening'
+  | 'rebuttal'
+  | 'closing'
+  | 'summary';
 
 export interface DebateConfig {
   topic: DebateTopic;
