@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Send, BookOpen } from 'lucide-react';
+import { Send, BookOpen } from 'lucide-react';
 import { AudienceQuestion } from '@/lib/types';
 import { formatDistanceToNow } from 'date-fns';
 import { ja } from 'date-fns/locale';

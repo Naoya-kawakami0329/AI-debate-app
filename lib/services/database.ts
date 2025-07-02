@@ -100,12 +100,13 @@ export class DatabaseService {
 
   // Fetch debate topics from database
   static async getTopics(): Promise<DebateTopic[]> {
-    if (!this.isAvailable() || !supabase) {
+    const client = this.getSupabaseClient();
+    if (!client) {
       return [];
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('topics')
         .select('*')
         .order('created_at', { ascending: false });
@@ -247,12 +248,13 @@ export class DatabaseService {
 
   // Fetch recent debates
   static async getRecentDebates(limit: number = 10) {
-    if (!this.isAvailable() || !supabase) {
+    const client = this.getSupabaseClient();
+    if (!client) {
       return [];
     }
 
     try {
-      const { data, error } = await supabase
+      const { data, error } = await client
         .from('debates')
         .select(`
           *,
@@ -285,7 +287,7 @@ export class DatabaseService {
       return data.map(debate => ({
         id: debate.id,
         topic: debate.topics?.title || 'Unknown Topic',
-        models: [debate.pro_model?.name || 'Unknown', debate.con_model?.name || 'Unknown'],
+        models: [debate.pro_model?.name || 'Unknown', debate.con_model?.name || 'Unknown'] as [string, string],
         duration: (() => {
           const startTime = new Date(debate.start_time || debate.created_at);
           const endTime = new Date(debate.end_time || debate.updated_at);
