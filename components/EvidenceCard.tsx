@@ -9,9 +9,9 @@ interface EvidenceCardProps {
 
 export default function EvidenceCard({ evidence }: EvidenceCardProps) {
   const credibilityColor =
-    evidence.credibility > 0.8
+    evidence.credibility > 80
       ? 'bg-green-500'
-      : evidence.credibility > 0.6
+      : evidence.credibility > 60
         ? 'bg-yellow-500'
         : 'bg-red-500';
 
@@ -25,7 +25,7 @@ export default function EvidenceCard({ evidence }: EvidenceCardProps) {
           <div className="flex items-center gap-1">
             <div className={`w-2 h-2 rounded-full ${credibilityColor}`}></div>
             <span className="text-xs text-muted-foreground">
-              {Math.round(evidence.credibility * 100)}%
+              {Math.round(evidence.credibility)}%
             </span>
           </div>
         </div>
@@ -40,9 +40,14 @@ export default function EvidenceCard({ evidence }: EvidenceCardProps) {
 
         <div className="flex items-center justify-between">
           <ExternalLink className="h-3 w-3 text-muted-foreground" />
-          <span className="text-xs text-blue-600 hover:underline">
+          <a
+            href={evidence.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-xs text-blue-600 hover:underline"
+          >
             詳細を見る
-          </span>
+          </a>
         </div>
       </CardContent>
     </Card>

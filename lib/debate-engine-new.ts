@@ -44,11 +44,7 @@ export class DebateEngine {
 
       if (this.useRealAI) {
         try {
-          console.log(
-            `Calling real AI API for ${model.provider} (attempt ${attempts})...`
-          );
           content = await this.generateRealAIMessage(stage, speaker, model);
-          console.log(`Real AI response length: ${content.length} characters`);
         } catch (error) {
           console.error(
             'Failed to generate AI message, falling back to mock:',
@@ -62,7 +58,6 @@ export class DebateEngine {
           content = this.generateMockMessage(stage, speaker, model);
         }
       } else {
-        console.log('Using mock message generation');
         content = this.generateMockMessage(stage, speaker, model);
       }
 
@@ -77,14 +72,8 @@ export class DebateEngine {
         break;
       }
 
-      console.log(
-        `Duplicate content detected (attempt ${attempts}), regenerating...`
-      );
 
       if (attempts >= maxAttempts) {
-        console.warn(
-          'Max attempts reached, using content with slight modification'
-        );
         const speakerLabel = speaker === 'pro' ? '賛成側' : '反対側';
         content = `${content} [${speakerLabel}の追加意見]`;
         break;

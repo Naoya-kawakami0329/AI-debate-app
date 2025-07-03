@@ -117,6 +117,17 @@ export class DatabaseService {
     }
 
     try {
+      // Only fetch topics that haven't been used in debates yet
+      const { data: usedTopicIds, error: usedError } = await client
+        .from('debates')
+        .select('topic_id')
+        .not('topic_id', 'is', null);
+
+      if (usedError) throw usedError;
+
+      const usedIds = usedTopicIds?.map((d) => d.topic_id) || [];
+
+      // Fetch topics that are either trending or haven't been used
       const { data, error } = await client
         .from('topics')
         .select('*')

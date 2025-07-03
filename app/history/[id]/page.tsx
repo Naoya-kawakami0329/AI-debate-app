@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,12 +19,7 @@ export default function HistoryDetailPage() {
   );
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!debateId) return;
-    loadDebateHistory();
-  }, [debateId]);
-
-  const loadDebateHistory = async () => {
+  const loadDebateHistory = useCallback(async () => {
     setLoading(true);
     try {
       const result = await getRecentDebatesAction(100); // Load many to find the specific one
@@ -43,7 +38,12 @@ export default function HistoryDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [debateId]);
+
+  useEffect(() => {
+    if (!debateId) return;
+    loadDebateHistory();
+  }, [debateId, loadDebateHistory]);
 
   const handleBackToHistory = () => {
     router.push('/history');

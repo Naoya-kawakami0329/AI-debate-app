@@ -8,10 +8,14 @@ export interface TrendsResponse {
 export class TrendsService {
   static async fetchTrends(): Promise<TrendsResponse> {
     try {
-      const response = await fetch('/api/trends');
+      const response = await fetch('/api/trends', {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+        },
+      });
 
       if (!response.ok) {
-        console.warn('API request failed, using mock data');
         throw new Error('Failed to fetch trends');
       }
 

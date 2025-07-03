@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,7 @@ import {
   Clock,
   Volume2,
   VolumeX,
+  Share2,
 } from 'lucide-react';
 import { DebateState, DebateMessage, DebateStage } from '@/lib/types';
 import { DebateEngine } from '@/lib/debate-engine-new';
@@ -59,7 +60,7 @@ export default function DebateViewer({
     summary: 100,
   };
 
-  const speakMessage = async (content: string, speaker: 'pro' | 'con') => {
+  const speakMessage = useCallback(async (content: string, speaker: 'pro' | 'con') => {
     if (!autoSpeech) return;
 
     // 話者によって音声を変える
@@ -70,7 +71,7 @@ export default function DebateViewer({
     } catch (error) {
       console.error('Failed to speak message:', error);
     }
-  };
+  }, [autoSpeech]);
 
   // 自動スクロール機能
   const scrollToBottom = () => {
@@ -91,7 +92,7 @@ export default function DebateViewer({
       }
     }
     lastMessageCountRef.current = debateState.messages.length;
-  }, [debateState.messages.length, autoSpeech]);
+  }, [debateState.messages, speakMessage, autoSpeech]);
 
   useEffect(() => {
     if (!isPlaying || debateState.stage === 'summary') return;
@@ -162,7 +163,7 @@ export default function DebateViewer({
 
     const timeout = setTimeout(generateNextMessage, 3000);
     return () => clearTimeout(timeout);
-  }, [isPlaying, debateState.stage, debateState.currentSpeaker, engine]);
+  }, [isPlaying, debateState.stage, debateState.currentSpeaker, debateState.messages, engine]);
 
   const togglePlayPause = () => {
     if (debateState.stage === 'setup') {
@@ -192,6 +193,31 @@ export default function DebateViewer({
     setAutoSpeech(!autoSpeech);
   };
 
+  const handleShare = async () => {
+    const shareData = {
+      title: `AIディベート: ${debateState.config.topic.title}`,
+      text: `${debateState.config.proModel.name} vs ${debateState.config.conModel.name}の白熱した議論をご覧ください！`,
+      url: window.location.href,
+    };
+
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (error) {
+      }
+    } else {
+      // Web Share APIがサポートされていない場合はURLをコピー
+      try {
+        await navigator.clipboard.writeText(window.location.href);
+        alert('URLをクリップボードにコピーしました！');
+      } catch (error) {
+        console.error('クリップボードへのコピーに失敗しました:', error);
+        // フォールバック: URLを表示
+        prompt('URLをコピーしてください:', window.location.href);
+      }
+    }
+  };
+
   const handleVote = async (winner: 'pro' | 'con' | 'draw') => {
     const updatedState = {
       ...debateState,
@@ -206,7 +232,6 @@ export default function DebateViewer({
     try {
       const result = await saveDebateAction(updatedState);
       if (result.success) {
-        console.log('Debate saved successfully with ID:', result.debateId);
         // Notify parent component to refresh data
         onDebateSaved?.();
       } else {
@@ -225,6 +250,10 @@ export default function DebateViewer({
           ← 戻る
         </Button>
         <div className="flex items-center gap-4">
+          <Button variant="outline" onClick={handleShare}>
+            <Share2 className="h-4 w-4 mr-2" />
+            共有
+          </Button>
           <Button
             variant="outline"
             onClick={toggleAutoSpeech}
