@@ -28,7 +28,8 @@ export class DebateEngine {
 
   async generateMessage(
     stage: DebateStage,
-    speaker: 'pro' | 'con'
+    speaker: 'pro' | 'con',
+    currentMessages?: DebateMessage[]
   ): Promise<DebateMessage> {
     const model =
       speaker === 'pro'
@@ -44,7 +45,7 @@ export class DebateEngine {
 
       if (this.useRealAI) {
         try {
-          content = await this.generateRealAIMessage(stage, speaker, model);
+          content = await this.generateRealAIMessage(stage, speaker, model, currentMessages);
         } catch (error) {
           console.error(
             'Failed to generate AI message, falling back to mock:',
@@ -61,8 +62,9 @@ export class DebateEngine {
         content = this.generateMockMessage(stage, speaker, model);
       }
 
-      // Check for duplicate content
-      const isDuplicate = this.debateState.messages.some(
+      // Check for duplicate content using current messages
+      const messages = currentMessages || this.debateState.messages;
+      const isDuplicate = messages.some(
         (msg) =>
           msg.content.trim().toLowerCase() === content.trim().toLowerCase() ||
           this.calculateSimilarity(msg.content, content) > 0.8
@@ -97,10 +99,12 @@ export class DebateEngine {
   private async generateRealAIMessage(
     stage: DebateStage,
     speaker: 'pro' | 'con',
-    model: AIModel
+    model: AIModel,
+    currentMessages?: DebateMessage[]
   ): Promise<string> {
     // Build context from previous messages
-    const previousMessages = this.debateState.messages.map((msg) => ({
+    const messages = currentMessages || this.debateState.messages;
+    const previousMessages = messages.map((msg) => ({
       role: msg.speaker,
       content: msg.content,
     }));
@@ -207,7 +211,7 @@ export class DebateEngine {
     return [];
   }
 
-  async nextStage(): Promise<DebateStage> {
+  async nextStage(currentStage?: DebateStage): Promise<DebateStage> {
     const stageOrder: DebateStage[] = [
       'setup',
       'opening',
@@ -215,13 +219,19 @@ export class DebateEngine {
       'closing',
       'summary',
     ];
-    const currentIndex = stageOrder.indexOf(this.debateState.stage);
+    
+    // 現在のステージを外部から受け取る場合はそれを使用
+    const stage = currentStage || this.debateState.stage;
+    const currentIndex = stageOrder.indexOf(stage);
 
     if (currentIndex < stageOrder.length - 1) {
-      this.debateState.stage = stageOrder[currentIndex + 1];
+      const nextStage = stageOrder[currentIndex + 1];
+      // 内部状態も更新（後方互換性のため）
+      this.debateState.stage = nextStage;
+      return nextStage;
     }
 
-    return this.debateState.stage;
+    return stage;
   }
 
   generateSummary(): string {
