@@ -1,17 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Medal } from 'lucide-react';
-import { AIModel } from '@/lib/types';
 
 interface SummaryCardProps {
   summary: string;
-  winner: 'pro' | 'con' | 'draw';
-  proModel: AIModel;
-  conModel: AIModel;
 }
 
-export default function SummaryCard({
-  summary,
-}: SummaryCardProps) {
+export default function SummaryCard({ summary }: SummaryCardProps) {
   return (
     <div className="space-y-6">
       {/* サマリー */}

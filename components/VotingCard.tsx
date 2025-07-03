@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Vote, Trophy, Users } from 'lucide-react';
+import { Vote, Trophy } from 'lucide-react';
 import { AIModel } from '@/lib/types';
 
 interface VotingCardProps {

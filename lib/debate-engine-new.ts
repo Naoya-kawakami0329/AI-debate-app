@@ -72,7 +72,6 @@ export class DebateEngine {
         break;
       }
 
-
       if (attempts >= maxAttempts) {
         const speakerLabel = speaker === 'pro' ? '賛成側' : '反対側';
         content = `${content} [${speakerLabel}の追加意見]`;

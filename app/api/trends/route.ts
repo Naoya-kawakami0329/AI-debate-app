@@ -50,8 +50,6 @@ async function fetchNewsTrends(): Promise<TrendingTopic[]> {
     return getMockNewsTrends();
   }
 
-
-
   try {
     // Try multiple endpoints to get news
     let response: any;
@@ -96,11 +94,8 @@ async function fetchNewsTrends(): Promise<TrendingTopic[]> {
         articles = [...articles, ...japaneseArticles];
 
         if (articles.length >= 30) break;
-      } catch (error) {
-      }
+      } catch (error) {}
     }
-
-
 
     // Filter articles to prioritize those with Japanese content
     const articlesWithJapanese = articles.filter((article: any) => {
@@ -254,7 +249,6 @@ async function fetchNewsTrends(): Promise<TrendingTopic[]> {
       });
     });
 
-
     // Return only top 3 topics from NewsAPI
     const finalTopics = trendingTopics.slice(0, 3);
     return finalTopics;
@@ -323,7 +317,6 @@ export async function GET() {
 
     // Combine exactly 3 from each source
     const allTrends = [...topGoogleTrends, ...topNewsTrends];
-
 
     // No additional sorting - maintain source separation
 

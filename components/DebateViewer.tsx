@@ -14,7 +14,7 @@ import {
   VolumeX,
   Share2,
 } from 'lucide-react';
-import { DebateState, DebateMessage, DebateStage } from '@/lib/types';
+import { DebateState, DebateStage } from '@/lib/types';
 import { DebateEngine } from '@/lib/debate-engine-new';
 import { AudioService } from '@/lib/services/audio';
 import { saveDebateAction } from '@/lib/actions/debate-actions';
@@ -40,7 +40,6 @@ export default function DebateViewer({
   const [engine] = useState(new DebateEngine(initialState, true));
   const [hasVoted, setHasVoted] = useState(false);
   const [autoSpeech, setAutoSpeech] = useState(false);
-  const [showDebateReview, setShowDebateReview] = useState(false);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -60,18 +59,21 @@ export default function DebateViewer({
     summary: 100,
   };
 
-  const speakMessage = useCallback(async (content: string, speaker: 'pro' | 'con') => {
-    if (!autoSpeech) return;
+  const speakMessage = useCallback(
+    async (content: string, speaker: 'pro' | 'con') => {
+      if (!autoSpeech) return;
 
-    // 話者によって音声を変える
-    const voice = speaker === 'pro' ? 'alloy' : 'echo';
+      // 話者によって音声を変える
+      const voice = speaker === 'pro' ? 'alloy' : 'echo';
 
-    try {
-      await AudioService.synthesizeSpeech(content, { voice, speed: 0.9 });
-    } catch (error) {
-      console.error('Failed to speak message:', error);
-    }
-  }, [autoSpeech]);
+      try {
+        await AudioService.synthesizeSpeech(content, { voice, speed: 0.9 });
+      } catch (error) {
+        console.error('Failed to speak message:', error);
+      }
+    },
+    [autoSpeech]
+  );
 
   // 自動スクロール機能
   const scrollToBottom = () => {
@@ -163,7 +165,13 @@ export default function DebateViewer({
 
     const timeout = setTimeout(generateNextMessage, 3000);
     return () => clearTimeout(timeout);
-  }, [isPlaying, debateState.stage, debateState.currentSpeaker, debateState.messages, engine]);
+  }, [
+    isPlaying,
+    debateState.stage,
+    debateState.currentSpeaker,
+    debateState.messages,
+    engine,
+  ]);
 
   const togglePlayPause = () => {
     if (debateState.stage === 'setup') {
@@ -203,8 +211,7 @@ export default function DebateViewer({
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch (error) {
-      }
+      } catch (error) {}
     } else {
       // Web Share APIがサポートされていない場合はURLをコピー
       try {
@@ -364,9 +371,6 @@ export default function DebateViewer({
               {hasVoted && debateState.winner && (
                 <SummaryCard
                   summary={debateState.summary!}
-                  winner={debateState.winner}
-                  proModel={debateState.config.proModel}
-                  conModel={debateState.config.conModel}
                 />
               )}
             </div>

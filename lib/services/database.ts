@@ -1,15 +1,12 @@
 import {
   supabase,
-  isSupabaseConfigured,
   createSupabaseAdmin,
 } from '../supabase/client';
 import {
   DebateState,
-  DebateMessage,
   AIModel,
   DebateTopic,
   TrendingTopic,
-  AudienceQuestion,
 } from '../types';
 
 export class DatabaseService {
