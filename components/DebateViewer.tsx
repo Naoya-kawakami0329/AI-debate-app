@@ -40,8 +40,10 @@ export default function DebateViewer({
   const [engine] = useState(new DebateEngine(initialState, true));
   const [hasVoted, setHasVoted] = useState(false);
   const [autoSpeech, setAutoSpeech] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isGeneratingRef = useRef(false);
 
   const stageNames = {
     setup: '準備中',
@@ -80,6 +82,7 @@ export default function DebateViewer({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
   // 新しいメッセージが追加されたときの自動読み上げと自動スクロール
   useEffect(() => {
     if (debateState.messages.length > lastMessageCountRef.current) {
@@ -97,24 +100,53 @@ export default function DebateViewer({
   }, [debateState.messages, speakMessage, autoSpeech]);
 
   useEffect(() => {
-    if (!isPlaying || debateState.stage === 'summary') return;
+    if (!isPlaying || debateState.stage === 'summary' || isGeneratingRef.current) return;
 
     const generateNextMessage = async () => {
+      if (isGeneratingRef.current) return; // 既に処理中の場合は実行しない
+      
+      isGeneratingRef.current = true; // 処理開始フラグを立てる
+      
       try {
         // 現在のステージでのメッセージ数をチェック
         const currentStageMessages = debateState.messages.filter(
           (m) => m.stage === debateState.stage
         );
 
-        // 各段階で4つのメッセージ（各側2回ずつ）に達している場合はスキップ
+        // 各段階で4つのメッセージ（各側2回ずつ）に達している場合は次のステージへ移行
         if (currentStageMessages.length >= 4) {
+          // 次のステージへ移行
+          try {
+            const nextStage = await engine.nextStage(debateState.stage);
+            
+            if (nextStage === 'summary') {
+              const summary = engine.generateSummary();
+              setDebateState((currentState) => ({
+                ...currentState,
+                stage: nextStage,
+                summary,
+              }));
+              setIsPlaying(false);
+            } else {
+              setDebateState((currentState) => ({
+                ...currentState,
+                stage: nextStage,
+                currentSpeaker: 'pro', // 新しいステージは賛成側から開始
+              }));
+            }
+          } catch (error) {
+            setErrorMessage('ステージ移行中にエラーが発生しました');
+            setIsPlaying(false);
+          }
+          isGeneratingRef.current = false; // 処理完了フラグをリセット
           return;
         }
 
         // 新しいメッセージを生成
         const newMessage = await engine.generateMessage(
           debateState.stage,
-          debateState.currentSpeaker
+          debateState.currentSpeaker,
+          debateState.messages
         );
 
         setDebateState((prev) => {
@@ -126,40 +158,32 @@ export default function DebateViewer({
               | 'con',
           };
 
-          // 更新後のステージメッセージ数をチェック
-          const updatedStageMessages = updatedState.messages.filter(
-            (m) => m.stage === prev.stage
-          );
-
-          // 各段階で4つのメッセージ（各側2回ずつ）後に次の段階へ
-          if (updatedStageMessages.length >= 4) {
-            // 少し遅らせて次のステージに移行
-            setTimeout(() => {
-              engine.nextStage().then((nextStage) => {
-                if (nextStage === 'summary') {
-                  const summary = engine.generateSummary();
-                  setDebateState((currentState) => ({
-                    ...currentState,
-                    stage: nextStage,
-                    summary,
-                  }));
-                  setIsPlaying(false);
-                } else {
-                  setDebateState((currentState) => ({
-                    ...currentState,
-                    stage: nextStage,
-                    currentSpeaker: 'pro', // 新しいステージは賛成側から開始
-                  }));
-                }
-              });
-            }, 1000);
-          }
-
           return updatedState;
         });
       } catch (error) {
         console.error('Error generating message:', error);
         setIsPlaying(false);
+        
+        // エラーの種類に応じて適切なメッセージを設定
+        let errorMsg = 'AI処理中にエラーが発生しました';
+        if (error instanceof Error) {
+          if (error.message.includes('API key') || error.message.includes('API キー')) {
+            errorMsg = 'APIキーが設定されていません。環境変数を確認してください。';
+          } else if (error.message.includes('quota') || error.message.includes('制限')) {
+            errorMsg = 'API使用制限に達しました。しばらくしてからお試しください。';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMsg = 'ネットワークエラーが発生しました。接続を確認してください。';
+          } else {
+            errorMsg = `AI処理エラー: ${error.message}`;
+          }
+        }
+        
+        setErrorMessage(errorMsg);
+        
+        // 5秒後にエラーメッセージを自動的に非表示
+        setTimeout(() => setErrorMessage(null), 5000);
+      } finally {
+        isGeneratingRef.current = false; // 処理完了フラグをリセット
       }
     };
 
@@ -169,7 +193,6 @@ export default function DebateViewer({
     isPlaying,
     debateState.stage,
     debateState.currentSpeaker,
-    debateState.messages,
     engine,
   ]);
 
@@ -398,6 +421,18 @@ export default function DebateViewer({
                       </div>
                     </div>
                   )}
+                {errorMessage && (
+                  <div className="flex justify-center py-4">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md max-w-md">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm">{errorMessage}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
             </>
