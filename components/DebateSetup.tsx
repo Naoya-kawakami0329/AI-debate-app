@@ -115,12 +115,12 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-8">
+    <div className="max-w-4xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
       <div className="text-center space-y-4">
-        <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent px-2">
           AI vs AI ディベート設定
         </h1>
-        <p className="text-lg text-muted-foreground">
+        <p className="text-base sm:text-lg text-muted-foreground px-4">
           AIモデル同士の白熱した議論を観戦しよう
         </p>
       </div>
@@ -136,7 +136,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
             議論したいトピックを選択するか、カスタムトピックを入力してください
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-6">
+        <CardContent className="space-y-4 sm:space-y-6">
           {/* トレンドトピック */}
           {trendingTopics.length > 0 && (
             <div className="space-y-3">
@@ -148,7 +148,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                   リアルタイム
                 </Badge>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {trendingTopics.slice(0, 3).map((trend) => (
                   <Card
                     key={trend.keyword}
@@ -191,7 +191,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
           {/* 推奨トピック */}
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">推奨トピック</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {availableTopics.map((topic) => (
                 <Card
                   key={topic.id}
@@ -260,7 +260,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             {/* 賛成側 */}
             <div className="space-y-3">
               <h3 className="font-semibold text-green-600">賛成側 (Pro)</h3>
@@ -274,9 +274,9 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                     onClick={() => setProModel(model)}
                   >
                     <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{model.avatar}</div>
-                        <div>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="text-xl sm:text-2xl">{model.avatar}</div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-sm">
                             {model.name}
                           </h4>
@@ -304,9 +304,9 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
                     onClick={() => setConModel(model)}
                   >
                     <CardContent className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="text-2xl">{model.avatar}</div>
-                        <div>
+                      <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="text-xl sm:text-2xl">{model.avatar}</div>
+                        <div className="flex-1">
                           <h4 className="font-semibold text-sm">
                             {model.name}
                           </h4>
@@ -356,7 +356,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
           onClick={handleStart}
           disabled={!isReady}
           size="lg"
-          className="px-8 py-3 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+          className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
         >
           ディベート開始
           <ArrowRight className="ml-2 h-5 w-5" />

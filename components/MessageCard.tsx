@@ -15,26 +15,28 @@ export default function MessageCard({ message }: MessageCardProps) {
 
   return (
     <Card
-      className={`${isProSide ? 'ml-0 mr-8' : 'ml-8 mr-0'} transition-all duration-300 hover:shadow-md`}
+      className={`${isProSide ? 'ml-0 sm:mr-4 md:mr-6 lg:mr-8' : 'sm:ml-4 md:ml-6 lg:ml-8 mr-0'} transition-all duration-300 hover:shadow-md`}
     >
-      <CardContent className="p-4">
-        <div className="flex items-start gap-3">
-          <div className={`text-2xl ${isProSide ? 'order-1' : 'order-3'}`}>
+      <CardContent className="p-3 sm:p-4">
+        <div className="flex items-start gap-2 sm:gap-3">
+          <div className={`text-xl sm:text-2xl ${isProSide ? 'order-1' : 'order-3'}`}>
             {message.model.avatar}
           </div>
 
           <div className={`flex-1 ${isProSide ? 'order-2' : 'order-2'}`}>
-            <div className="flex items-center gap-2 mb-2">
-              <Badge
-                variant={isProSide ? 'default' : 'destructive'}
-                className="text-xs"
-              >
-                {message.model.name}
-              </Badge>
-              <Badge variant="outline" className="text-xs">
-                {isProSide ? '賛成側' : '反対側'}
-              </Badge>
-              <span className="text-xs text-muted-foreground ml-auto">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mb-2">
+              <div className="flex items-center gap-2">
+                <Badge
+                  variant={isProSide ? 'default' : 'destructive'}
+                  className="text-xs"
+                >
+                  {message.model.name}
+                </Badge>
+                <Badge variant="outline" className="text-xs">
+                  {isProSide ? '賛成側' : '反対側'}
+                </Badge>
+              </div>
+              <span className="text-xs text-muted-foreground sm:ml-auto">
                 {formatDistanceToNow(message.timestamp, {
                   addSuffix: true,
                   locale: ja,
