@@ -250,33 +250,33 @@ export default function DebateViewer({
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-4 space-y-6">
+    <div className="max-w-6xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
       {/* ヘッダー */}
-      <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={onBack}>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
+        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto">
           ← 戻る
         </Button>
-        <div className="flex items-center gap-4">
-          <Button variant="outline" onClick={handleShare}>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+          <Button variant="outline" onClick={handleShare} className="w-full sm:w-auto">
             <Share2 className="h-4 w-4 mr-2" />
-            共有
+            <span className="hidden sm:inline">共有</span>
           </Button>
           <Button
             variant="outline"
             onClick={toggleAutoSpeech}
-            className={autoSpeech ? 'bg-blue-100' : ''}
+            className={`${autoSpeech ? 'bg-blue-100' : ''} w-full sm:w-auto`}
           >
             {autoSpeech ? (
               <Volume2 className="h-4 w-4 mr-2" />
             ) : (
               <VolumeX className="h-4 w-4 mr-2" />
             )}
-            自動読み上げ
+            <span className="hidden sm:inline">自動読み上げ</span>
           </Button>
           <Button
             onClick={togglePlayPause}
             disabled={debateState.stage === 'summary'}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4 mr-2" />
@@ -291,30 +291,30 @@ export default function DebateViewer({
       {/* トピック表示 */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl text-center">
+          <CardTitle className="text-lg sm:text-xl text-center px-2">
             {debateState.config.topic.title}
           </CardTitle>
-          <div className="flex justify-center gap-8">
+          <div className="flex flex-col sm:flex-row justify-center items-center gap-4 sm:gap-8">
             <div className="flex items-center gap-2">
-              <div className="text-2xl">
+              <div className="text-xl sm:text-2xl">
                 {debateState.config.proModel.avatar}
               </div>
               <div className="text-center">
-                <p className="font-semibold text-green-600">
+                <p className="font-semibold text-green-600 text-sm sm:text-base">
                   {debateState.config.proModel.name}
                 </p>
                 <p className="text-xs text-muted-foreground">賛成側</p>
               </div>
             </div>
-            <div className="text-2xl">🥊</div>
+            <div className="text-xl sm:text-2xl">🥊</div>
             <div className="flex items-center gap-2">
               <div className="text-center">
-                <p className="font-semibold text-red-600">
+                <p className="font-semibold text-red-600 text-sm sm:text-base">
                   {debateState.config.conModel.name}
                 </p>
                 <p className="text-xs text-muted-foreground">反対側</p>
               </div>
-              <div className="text-2xl">
+              <div className="text-xl sm:text-2xl">
                 {debateState.config.conModel.avatar}
               </div>
             </div>
@@ -336,7 +336,7 @@ export default function DebateViewer({
         </CardContent>
       </Card>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* メイン: ディベートメッセージ */}
         <div className="lg:col-span-2 space-y-4">
           {debateState.stage === 'summary' ? (
@@ -350,7 +350,7 @@ export default function DebateViewer({
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4 max-h-[600px] overflow-y-auto">
+                  <div className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
                     {debateState.messages.map((message) => (
                       <MessageCard key={message.id} message={message} />
                     ))}
@@ -376,8 +376,8 @@ export default function DebateViewer({
             </div>
           ) : (
             <>
-              <h2 className="text-xl font-semibold">ディベート進行</h2>
-              <div className="space-y-4 max-h-[600px] overflow-y-auto">
+              <h2 className="text-lg sm:text-xl font-semibold">ディベート進行</h2>
+              <div className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
                 {debateState.messages.map((message) => (
                   <MessageCard key={message.id} message={message} />
                 ))}

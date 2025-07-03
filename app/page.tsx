@@ -70,27 +70,27 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100">
-      <div className="max-w-6xl mx-auto p-6 space-y-8">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 space-y-6 sm:space-y-8">
         {/* ヘッダー */}
         <div className="text-center space-y-4">
-          <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-indigo-600 bg-clip-text text-transparent px-2">
             AI vs AI ディベート観戦
           </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto px-4">
             最先端のAIモデル同士が繰り広げる白熱した議論を観戦し、知識を深めよう
           </p>
-          <div className="flex justify-center gap-4">
-            <Link href="/setup">
+          <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4 px-4">
+            <Link href="/setup" className="w-full sm:w-auto">
               <Button
                 size="lg"
-                className="px-8 py-3 text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg font-semibold bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
               >
                 <Play className="mr-2 h-5 w-5" />
                 新しいディベートを開始
               </Button>
             </Link>
-            <Link href="/history">
-              <Button variant="outline" size="lg" className="px-8 py-3 text-lg">
+            <Link href="/history" className="w-full sm:w-auto">
+              <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg">
                 <MessageCircle className="mr-2 h-5 w-5" />
                 履歴を見る
               </Button>
@@ -101,18 +101,18 @@ export default function Home() {
         {/* 人気のトピック（リアルタイム更新） */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                <CardTitle>人気のトピック</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">人気のトピック</CardTitle>
                 <Badge variant="secondary" className="text-xs">
                   <RefreshCw className="h-3 w-3 mr-1" />
                   自動更新
                 </Badge>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
                 <Calendar className="h-4 w-4" />
-                最終更新:{' '}
+                <span className="hidden sm:inline">最終更新:</span>
                 {trendsLastUpdated
                   ? format(new Date(trendsLastUpdated), 'M月d日 HH:mm', {
                       locale: ja,
@@ -126,7 +126,7 @@ export default function Home() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
               {isLoadingTrends
                 ? // Loading skeleton
                   Array.from({ length: 6 }).map((_, index) => (
@@ -206,13 +206,13 @@ export default function Home() {
         {/* 最近のディベート */}
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+              <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
                 <MessageCircle className="h-5 w-5" />
                 最近のディベート
               </CardTitle>
               <Link href="/history">
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" className="w-full sm:w-auto">
                   すべて見る
                 </Button>
               </Link>
@@ -240,13 +240,13 @@ export default function Home() {
                 recentDebates.map((debate) => (
                   <Link key={debate.id} href={`/history/${debate.id}`}>
                     <Card className="hover:shadow-md transition-shadow cursor-pointer">
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between">
+                      <CardContent className="p-3 sm:p-4">
+                        <div className="flex flex-col sm:flex-row items-start justify-between gap-3 sm:gap-4">
                           <div className="flex-1">
-                            <h3 className="font-semibold mb-2">
+                            <h3 className="font-semibold mb-2 text-sm sm:text-base">
                               {debate.topic}
                             </h3>
-                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground">
                               <div className="flex items-center gap-1">
                                 <span>🧠 {debate.models[0]}</span>
                                 <span>vs</span>
@@ -258,17 +258,18 @@ export default function Home() {
                               </div>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-left sm:text-right">
                             <Badge
                               variant={
                                 debate.winner === '引き分け'
                                   ? 'secondary'
                                   : 'default'
                               }
+                              className="text-xs"
                             >
                               勝者: {debate.winner}
                             </Badge>
-                            <p className="text-sm text-muted-foreground mt-1">
+                            <p className="text-xs sm:text-sm text-muted-foreground mt-1">
                               {debate.status}
                             </p>
                           </div>
