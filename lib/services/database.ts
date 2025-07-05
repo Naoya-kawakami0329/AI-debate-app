@@ -1,34 +1,20 @@
-import {
-  supabase,
-  createSupabaseAdmin,
-} from '../supabase/client';
-import {
-  DebateState,
-  AIModel,
-  DebateTopic,
-  TrendingTopic,
-} from '../types';
+import { supabase, createSupabaseAdmin } from '../supabase/client';
+import { DebateState, AIModel, DebateTopic, TrendingTopic } from '../types';
 
 export class DatabaseService {
-  // Get the appropriate Supabase client (server-side for server actions, client-side for browser)
   private static getSupabaseClient() {
-    // Check if we're running on the server (Node.js environment)
     if (typeof window === 'undefined') {
-      // Server-side: use admin client
       return createSupabaseAdmin();
     } else {
-      // Client-side: use regular client
       return supabase;
     }
   }
 
-  // Helper method to check if Supabase operations are available
   private static isAvailable(): boolean {
     const client = this.getSupabaseClient();
     return !!client;
   }
 
-  // Ensure topic exists in database, create if it doesn't
   private static async ensureTopicExists(topic: DebateTopic): Promise<string> {
     const client = this.getSupabaseClient();
     if (!client) {
@@ -36,7 +22,6 @@ export class DatabaseService {
     }
 
     try {
-      // First try to find existing topic
       const { data: existingTopic } = await client
         .from('topics')
         .select('id')
@@ -47,7 +32,6 @@ export class DatabaseService {
         return existingTopic.id;
       }
 
-      // Create new topic if it doesn't exist
       const { data: newTopic, error } = await client
         .from('topics')
         .insert({
@@ -67,7 +51,6 @@ export class DatabaseService {
     }
   }
 
-  // Ensure AI model exists in database, create if it doesn't
   private static async ensureModelExists(model: AIModel): Promise<string> {
     const client = this.getSupabaseClient();
     if (!client) {
@@ -75,7 +58,6 @@ export class DatabaseService {
     }
 
     try {
-      // First try to find existing model
       const { data: existingModel } = await client
         .from('ai_models')
         .select('id')
@@ -86,7 +68,6 @@ export class DatabaseService {
         return existingModel.id;
       }
 
-      // Create new model if it doesn't exist
       const { data: newModel, error } = await client
         .from('ai_models')
         .insert({
@@ -106,7 +87,6 @@ export class DatabaseService {
     }
   }
 
-  // Fetch debate topics from database
   static async getTopics(): Promise<DebateTopic[]> {
     const client = this.getSupabaseClient();
     if (!client) {
@@ -114,7 +94,6 @@ export class DatabaseService {
     }
 
     try {
-      // Only fetch topics that haven't been used in debates yet
       const { data: usedTopicIds, error: usedError } = await client
         .from('debates')
         .select('topic_id')
@@ -122,9 +101,6 @@ export class DatabaseService {
 
       if (usedError) throw usedError;
 
-      const usedIds = usedTopicIds?.map((d) => d.topic_id) || [];
-
-      // Fetch topics that are either trending or haven't been used
       const { data, error } = await client
         .from('topics')
         .select('*')
@@ -154,10 +130,8 @@ export class DatabaseService {
     }
 
     try {
-      // First, ensure topic exists in database
       let topicId = await this.ensureTopicExists(debateState.config.topic);
 
-      // Ensure AI models exist in database
       let proModelId = await this.ensureModelExists(
         debateState.config.proModel
       );
@@ -189,9 +163,8 @@ export class DatabaseService {
 
       const debateId = debateData.id;
 
-      // Save messages
-      if (debateState.messages.length > 0) {
-        // For each message, ensure the model ID exists and get the correct DB ID
+ 
+        if (debateState.messages.length > 0) {
         const messagesData = await Promise.all(
           debateState.messages.map(async (message) => {
             const dbModelId = await this.ensureModelExists(message.model);
@@ -214,7 +187,6 @@ export class DatabaseService {
 
         if (messagesError) throw messagesError;
 
-        // Save evidence for each message using the returned database message IDs
         if (savedMessages && savedMessages.length > 0) {
           for (let i = 0; i < debateState.messages.length; i++) {
             const message = debateState.messages[i];
@@ -239,14 +211,13 @@ export class DatabaseService {
                   'Error saving evidence for message:',
                   evidenceError
                 );
-                // Don't throw here to prevent failing the entire debate save
               }
             }
           }
         }
       }
 
-      // Save audience questions
+
       if (debateState.audienceQuestions.length > 0) {
         const questionsData = debateState.audienceQuestions.map((question) => ({
           debate_id: debateId,
