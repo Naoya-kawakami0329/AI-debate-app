@@ -19,7 +19,9 @@ export default function MessageCard({ message }: MessageCardProps) {
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-start gap-2 sm:gap-3">
-          <div className={`text-xl sm:text-2xl ${isProSide ? 'order-1' : 'order-3'}`}>
+          <div
+            className={`text-xl sm:text-2xl ${isProSide ? 'order-1' : 'order-3'}`}
+          >
             {message.model.avatar}
           </div>
 

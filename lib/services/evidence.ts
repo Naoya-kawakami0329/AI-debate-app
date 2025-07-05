@@ -15,7 +15,6 @@ export class EvidenceService {
     const cacheKey = `${params.topic}-${params.query}`;
     const cached = this.cache.get(cacheKey);
 
-    // Return cached data if available and not expired
     if (cached) {
       return cached;
     }
@@ -36,10 +35,8 @@ export class EvidenceService {
       const data = await response.json();
       const evidence = data.evidence || [];
 
-      // Cache the results
       this.cache.set(cacheKey, evidence);
 
-      // Clear cache after timeout
       setTimeout(() => {
         this.cache.delete(cacheKey);
       }, this.cacheTimeout);

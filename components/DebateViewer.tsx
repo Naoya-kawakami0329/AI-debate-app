@@ -280,7 +280,11 @@ export default function DebateViewer({
           ← 戻る
         </Button>
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
-          <Button variant="outline" onClick={handleShare} className="w-full sm:w-auto">
+          <Button
+            variant="outline"
+            onClick={handleShare}
+            className="w-full sm:w-auto"
+          >
             <Share2 className="h-4 w-4 mr-2" />
             <span className="hidden sm:inline">共有</span>
           </Button>
@@ -392,14 +396,14 @@ export default function DebateViewer({
 
               {/* サマリーカード（投票後に表示） */}
               {hasVoted && debateState.winner && (
-                <SummaryCard
-                  summary={debateState.summary!}
-                />
+                <SummaryCard summary={debateState.summary!} />
               )}
             </div>
           ) : (
             <>
-              <h2 className="text-lg sm:text-xl font-semibold">ディベート進行</h2>
+              <h2 className="text-lg sm:text-xl font-semibold">
+                ディベート進行
+              </h2>
               <div className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
                 {debateState.messages.map((message) => (
                   <MessageCard key={message.id} message={message} />

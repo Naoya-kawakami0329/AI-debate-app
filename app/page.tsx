@@ -90,7 +90,11 @@ export default function Home() {
               </Button>
             </Link>
             <Link href="/history" className="w-full sm:w-auto">
-              <Button variant="outline" size="lg" className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg">
+              <Button
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto px-6 sm:px-8 py-3 text-base sm:text-lg"
+              >
                 <MessageCircle className="mr-2 h-5 w-5" />
                 履歴を見る
               </Button>
@@ -104,7 +108,9 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
               <div className="flex items-center gap-2">
                 <TrendingUp className="h-5 w-5" />
-                <CardTitle className="text-lg sm:text-xl">人気のトピック</CardTitle>
+                <CardTitle className="text-lg sm:text-xl">
+                  人気のトピック
+                </CardTitle>
                 <Badge variant="secondary" className="text-xs">
                   <RefreshCw className="h-3 w-3 mr-1" />
                   自動更新
@@ -195,7 +201,7 @@ export default function Home() {
                     <li>
                       • <strong>📰 News</strong>: ニュース言及の前日比増減率
                     </li>
-                    <li>• 毎日12:00 JST に自動更新（Cronジョブ）</li>
+                    <li>• 毎日12:00に自動更新</li>
                   </ul>
                 </div>
               </div>
@@ -212,7 +218,11 @@ export default function Home() {
                 最近のディベート
               </CardTitle>
               <Link href="/history">
-                <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full sm:w-auto"
+                >
                   すべて見る
                 </Button>
               </Link>
@@ -224,7 +234,6 @@ export default function Home() {
           <CardContent>
             <div className="space-y-4">
               {isLoadingDebates ? (
-                // Loading skeleton
                 Array.from({ length: 3 }).map((_, index) => (
                   <Card
                     key={`debate-skeleton-${index}`}
