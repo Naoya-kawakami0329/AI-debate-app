@@ -428,7 +428,7 @@ async function fetchNewsTrends(): Promise<TrendingTopic[]> {
             pageSize: 10,
             sortBy: 'publishedAt',
             from: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-            language: 'jp', // Request Japanese articles only
+            language: 'jp', 
           },
           timeout: 10000,
         });
@@ -607,7 +607,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (shouldUseCachedData()) {
+    if (shouldUseCachedData() && cachedTrends!.data.length > 0) {
       return NextResponse.json({
         trends: cachedTrends!.data,
         lastUpdated: new Date(cachedTrends!.timestamp).toISOString(),
@@ -615,19 +615,22 @@ export async function GET(request: Request) {
       });
     }
 
-    const [googleTrends, newsTrends] = await Promise.all([
+    const [googleTrends] = await Promise.all([
       fetchGoogleTrends(),
       fetchNewsTrends(),
     ]);
 
     const allTrends = googleTrends.slice(0, 6);
 
-    cachedTrends = {
-      data: allTrends,
-      timestamp: Date.now(),
-    };
+    // 空配列の場合はキャッシュを保存しない
+    if (allTrends.length > 0) {
+      cachedTrends = {
+        data: allTrends,
+        timestamp: Date.now(),
+      };
 
-    await trendsStorage.saveTrends(allTrends);
+      await trendsStorage.saveTrends(allTrends);
+    }
 
     return NextResponse.json({
       trends: allTrends,
@@ -635,12 +638,23 @@ export async function GET(request: Request) {
       cached: false,
     });
   } catch (error) {
-    if (cachedTrends) {
+    if (cachedTrends && cachedTrends.data.length > 0) {
       return NextResponse.json({
         trends: cachedTrends.data,
         lastUpdated: new Date(cachedTrends.timestamp).toISOString(),
         cached: true,
         error: 'Used cached data due to fetch error',
+      });
+    }
+
+    // キャッシュが空の場合は、Supabaseから最後の有効なデータを取得
+    const storedTrends = await trendsStorage.loadTrends();
+    if (storedTrends && storedTrends.length > 0) {
+      return NextResponse.json({
+        trends: storedTrends,
+        lastUpdated: new Date().toISOString(),
+        cached: true,
+        error: 'Used stored data due to fetch error',
       });
     }
 
