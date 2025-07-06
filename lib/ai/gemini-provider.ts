@@ -59,29 +59,20 @@ export class GeminiProvider extends AIProvider {
 
       return text || '申し訳ございません。応答を生成できませんでした。';
     } catch (error) {
-      console.error('Gemini API Error Details:', {
-        error: error instanceof Error ? error.message : error,
-        stack: error instanceof Error ? error.stack : undefined,
-        name: error instanceof Error ? error.name : undefined,
-        cause: error instanceof Error ? error.cause : undefined,
-      });
-
-      // More specific error message
-      let errorMessage = 'Gemini APIの呼び出しに失敗しました';
       if (error instanceof Error) {
-        if (error.message.includes('API_KEY')) {
-          errorMessage = 'Gemini API キーが無効または設定されていません';
-        } else if (error.message.includes('quota')) {
-          errorMessage = 'Gemini API の使用制限に達しました';
-        } else if (error.message.includes('safety')) {
-          errorMessage =
-            'Gemini API の安全性フィルターによりブロックされました';
-        } else {
-          errorMessage = `Gemini API エラー: ${error.message}`;
+        console.error('Gemini API Error:', error.message);
+        if (error.message.includes('timeout')) {
+          throw new Error('Gemini API タイムアウト - ネットワークが不安定です');
         }
+        if (error.message.includes('401') || error.message.includes('API key')) {
+          throw new Error('Gemini APIキーが無効です');
+        }
+        if (error.message.includes('429')) {
+          throw new Error('Gemini API レート制限に達しました');
+        }
+        throw new Error(`Gemini API エラー: ${error.message}`);
       }
-
-      throw new Error(errorMessage);
+      throw new Error('Gemini APIの呼び出しに失敗しました');
     }
   }
 }

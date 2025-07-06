@@ -33,7 +33,19 @@ export class ClaudeProvider extends AIProvider {
 
       return '申し訳ございません。応答を生成できませんでした。';
     } catch (error) {
-      console.error('Claude API Error:', error);
+      if (error instanceof Error) {
+        console.error('Claude API Error:', error.message);
+        if (error.message.includes('timeout')) {
+          throw new Error('Claude API タイムアウト - ネットワークが不安定です');
+        }
+        if (error.message.includes('401')) {
+          throw new Error('Claude APIキーが無効です');
+        }
+        if (error.message.includes('429')) {
+          throw new Error('Claude API レート制限に達しました');
+        }
+        throw new Error(`Claude API エラー: ${error.message}`);
+      }
       throw new Error('Claude APIの呼び出しに失敗しました');
     }
   }

@@ -29,7 +29,8 @@ export class EvidenceService {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to search evidence');
+        console.warn('Evidence search failed:', response.status, response.statusText);
+        return [];
       }
 
       const data = await response.json();
@@ -43,7 +44,7 @@ export class EvidenceService {
 
       return evidence;
     } catch (error) {
-      console.error('Error searching evidence:', error);
+      console.warn('Evidence search error (returning empty):', error instanceof Error ? error.message : 'Unknown error');
       return [];
     }
   }

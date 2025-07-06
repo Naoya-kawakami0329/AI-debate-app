@@ -54,15 +54,26 @@ export class DebateEngine {
         try {
           content = await this.generateRealAIMessage(stage, speaker, model);
         } catch (error) {
-          content = this.generateMockMessage(stage, speaker, model);
+          console.warn(`AI API error on attempt ${attempts}:`, error instanceof Error ? error.message : 'Unknown error');
+          
+          // 1回目の失敗の場合は少し待ってからリトライ
+          if (attempts === 1) {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            try {
+              content = await this.generateRealAIMessage(stage, speaker, model);
+            } catch (retryError) {
+              console.warn('AI API retry also failed:', retryError instanceof Error ? retryError.message : 'Unknown error');
+              content = this.generateMockMessage(stage, speaker, model);
+            }
+          } else {
+            content = this.generateMockMessage(stage, speaker, model);
+          }
         }
       } else {
         content = this.generateMockMessage(stage, speaker, model);
       }
 
-
       const isDuplicate = this.debateState.messages.some(
-
         (msg) =>
           msg.content.trim().toLowerCase() === content.trim().toLowerCase() ||
           this.calculateSimilarity(msg.content, content) > 0.8
@@ -159,7 +170,7 @@ export class DebateEngine {
         return evidence.slice(0, 2);
       }
     } catch (error) {
-      console.error('Error searching evidence:', error);
+      console.warn('Evidence search failed, continuing without evidence:', error instanceof Error ? error.message : 'Unknown error');
     }
     return [];
   }

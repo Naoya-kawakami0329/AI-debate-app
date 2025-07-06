@@ -123,7 +123,7 @@ export default function Home() {
                   ? format(new Date(trendsLastUpdated), 'M月d日 HH:mm', {
                       locale: ja,
                     })
-                  : '読み込み中...'}
+                  : isLoadingTrends ? '読み込み中...' : '未更新'}
               </div>
             </div>
             <CardDescription>
