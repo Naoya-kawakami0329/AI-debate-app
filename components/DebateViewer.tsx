@@ -44,9 +44,12 @@ export default function DebateViewer({
   });
   const [hasVoted, setHasVoted] = useState(false);
   const [autoSpeech, setAutoSpeech] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
   const [isTransitioning, setIsTransitioning] = useState(false);
+
 
   const stageNames = {
     setup: '準備中',
@@ -82,6 +85,7 @@ export default function DebateViewer({
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+
   useEffect(() => {
     if (debateState.messages.length > lastMessageCountRef.current) {
       const newMessage = debateState.messages[debateState.messages.length - 1];
@@ -99,24 +103,33 @@ export default function DebateViewer({
     stage === 'opening' || stage === 'closing' ? 2 : 4;
 
   useEffect(() => {
+
     if (!isPlaying || debateState.stage === 'summary' || debateState.stage === 'setup' || isTransitioning) return;
 
+
     const generateNextMessage = async () => {
+      if (isGeneratingRef.current) return; // 既に処理中の場合は実行しない
+      
+      isGeneratingRef.current = true; // 処理開始フラグを立てる
+      
       try {
         // 現在のステージでのメッセージ数をチェック
         const currentStageMessages = debateState.messages.filter(
           (m) => m.stage === debateState.stage
         );
 
+
         const messageLimit = getMessageLimit(debateState.stage);
         
         if (currentStageMessages.length >= messageLimit) {
+
           return;
         }
 
         const newMessage = await engine.generateMessage(
           debateState.stage,
-          debateState.currentSpeaker
+          debateState.currentSpeaker,
+          debateState.messages
         );
 
         setDebateState((prev) => {
@@ -126,48 +139,32 @@ export default function DebateViewer({
             currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as 'pro' | 'con',
           };
 
-          const updatedStageMessages = updatedState.messages.filter(
-            (m) => m.stage === prev.stage
-          );
-
-          const messageLimit = getMessageLimit(prev.stage);
-          
-          if (updatedStageMessages.length >= messageLimit) {
-            if (isTransitioning) {
-              return updatedState;
-            }
-            setIsTransitioning(true);
-            setTimeout(() => {
-              engine.updateStage(prev.stage);
-              
-              engine.nextStage().then((nextStage) => {
-                if (nextStage === 'summary') {
-                  const summary = engine.generateSummary();
-                  setDebateState((currentState) => ({
-                    ...currentState,
-                    stage: nextStage,
-                    summary,
-                  }));
-                  setIsPlaying(false);
-                } else {
-                  setDebateState((currentState) => {
-                    engine.updateStage(nextStage);
-                    return {
-                      ...currentState,
-                      stage: nextStage,
-                      currentSpeaker: 'pro',
-                    };
-                  });
-                }
-                setIsTransitioning(false);
-              });
-            }, 1000);
-          }
 
           return updatedState;
         });
       } catch (error) {
         setIsPlaying(false);
+        
+        // エラーの種類に応じて適切なメッセージを設定
+        let errorMsg = 'AI処理中にエラーが発生しました';
+        if (error instanceof Error) {
+          if (error.message.includes('API key') || error.message.includes('API キー')) {
+            errorMsg = 'APIキーが設定されていません。環境変数を確認してください。';
+          } else if (error.message.includes('quota') || error.message.includes('制限')) {
+            errorMsg = 'API使用制限に達しました。しばらくしてからお試しください。';
+          } else if (error.message.includes('network') || error.message.includes('fetch')) {
+            errorMsg = 'ネットワークエラーが発生しました。接続を確認してください。';
+          } else {
+            errorMsg = `AI処理エラー: ${error.message}`;
+          }
+        }
+        
+        setErrorMessage(errorMsg);
+        
+        // 5秒後にエラーメッセージを自動的に非表示
+        setTimeout(() => setErrorMessage(null), 5000);
+      } finally {
+        isGeneratingRef.current = false; // 処理完了フラグをリセット
       }
     };
 
@@ -177,7 +174,6 @@ export default function DebateViewer({
     isPlaying,
     debateState.stage,
     debateState.currentSpeaker,
-    debateState.messages,
     engine,
     isTransitioning,
   ]);
@@ -392,6 +388,18 @@ export default function DebateViewer({
                       </div>
                     </div>
                   )}
+                {errorMessage && (
+                  <div className="flex justify-center py-4">
+                    <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md max-w-md">
+                      <div className="flex items-center">
+                        <svg className="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                        </svg>
+                        <span className="text-sm">{errorMessage}</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 <div ref={messagesEndRef} />
               </div>
             </>

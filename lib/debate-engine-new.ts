@@ -37,7 +37,8 @@ export class DebateEngine {
 
   async generateMessage(
     stage: DebateStage,
-    speaker: 'pro' | 'con'
+    speaker: 'pro' | 'con',
+    currentMessages?: DebateMessage[]
   ): Promise<DebateMessage> {
     const model =
       speaker === 'pro'
@@ -53,7 +54,7 @@ export class DebateEngine {
 
       if (this.useRealAI) {
         try {
-          content = await this.generateRealAIMessage(stage, speaker, model);
+          content = await this.generateRealAIMessage(stage, speaker, model, currentMessages);
         } catch (error) {
           content = this.generateMockMessage(stage, speaker, model);
         }
@@ -61,7 +62,9 @@ export class DebateEngine {
         content = this.generateMockMessage(stage, speaker, model);
       }
 
+
       const isDuplicate = this.debateState.messages.some(
+
         (msg) =>
           msg.content.trim().toLowerCase() === content.trim().toLowerCase() ||
           this.calculateSimilarity(msg.content, content) > 0.8
@@ -95,9 +98,12 @@ export class DebateEngine {
   private async generateRealAIMessage(
     stage: DebateStage,
     speaker: 'pro' | 'con',
-    model: AIModel
+    model: AIModel,
+    currentMessages?: DebateMessage[]
   ): Promise<string> {
+
     const previousMessages = this.debateState.messages.map((msg) => ({
+
       role: msg.speaker,
       content: msg.content,
     }));
@@ -183,14 +189,16 @@ export class DebateEngine {
   }
 
 
+
   async nextStage(): Promise<DebateStage> {
     const currentIndex = STAGE_ORDER.indexOf(this.debateState.stage);
 
     if (currentIndex < STAGE_ORDER.length - 1) {
       return STAGE_ORDER[currentIndex + 1];
+
     }
 
-    return this.debateState.stage;
+    return stage;
   }
 
   generateSummary(): string {
