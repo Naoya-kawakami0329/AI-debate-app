@@ -37,13 +37,19 @@ export default function DebateViewer({
 }: DebateViewerProps) {
   const [debateState, setDebateState] = useState<DebateState>(initialState);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [engine] = useState(new DebateEngine(initialState, true));
+  const [engine] = useState(() => {
+    const eng = new DebateEngine(initialState, true);
+    eng.updateStage(initialState.stage);
+    return eng;
+  });
   const [hasVoted, setHasVoted] = useState(false);
   const [autoSpeech, setAutoSpeech] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const isGeneratingRef = useRef(false);
+
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
 
   const stageNames = {
     setup: '準備中',
@@ -65,42 +71,41 @@ export default function DebateViewer({
     async (content: string, speaker: 'pro' | 'con') => {
       if (!autoSpeech) return;
 
-      // 話者によって音声を変える
       const voice = speaker === 'pro' ? 'alloy' : 'echo';
 
       try {
         await AudioService.synthesizeSpeech(content, { voice, speed: 0.9 });
       } catch (error) {
-        console.error('Failed to speak message:', error);
       }
     },
     [autoSpeech]
   );
 
-  // 自動スクロール機能
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
 
-  // 新しいメッセージが追加されたときの自動読み上げと自動スクロール
   useEffect(() => {
     if (debateState.messages.length > lastMessageCountRef.current) {
       const newMessage = debateState.messages[debateState.messages.length - 1];
       if (newMessage) {
-        // 自動読み上げ
         if (autoSpeech) {
           speakMessage(newMessage.content, newMessage.speaker);
         }
-        // 自動スクロール
         setTimeout(scrollToBottom, 100);
       }
     }
     lastMessageCountRef.current = debateState.messages.length;
   }, [debateState.messages, speakMessage, autoSpeech]);
 
+  const getMessageLimit = (stage: DebateStage) => 
+    stage === 'opening' || stage === 'closing' ? 2 : 4;
+
   useEffect(() => {
-    if (!isPlaying || debateState.stage === 'summary' || isGeneratingRef.current) return;
+
+    if (!isPlaying || debateState.stage === 'summary' || debateState.stage === 'setup' || isTransitioning) return;
+
 
     const generateNextMessage = async () => {
       if (isGeneratingRef.current) return; // 既に処理中の場合は実行しない
@@ -113,36 +118,14 @@ export default function DebateViewer({
           (m) => m.stage === debateState.stage
         );
 
-        // 各段階で4つのメッセージ（各側2回ずつ）に達している場合は次のステージへ移行
-        if (currentStageMessages.length >= 4) {
-          // 次のステージへ移行
-          try {
-            const nextStage = await engine.nextStage(debateState.stage);
-            
-            if (nextStage === 'summary') {
-              const summary = engine.generateSummary();
-              setDebateState((currentState) => ({
-                ...currentState,
-                stage: nextStage,
-                summary,
-              }));
-              setIsPlaying(false);
-            } else {
-              setDebateState((currentState) => ({
-                ...currentState,
-                stage: nextStage,
-                currentSpeaker: 'pro', // 新しいステージは賛成側から開始
-              }));
-            }
-          } catch (error) {
-            setErrorMessage('ステージ移行中にエラーが発生しました');
-            setIsPlaying(false);
-          }
-          isGeneratingRef.current = false; // 処理完了フラグをリセット
+
+        const messageLimit = getMessageLimit(debateState.stage);
+        
+        if (currentStageMessages.length >= messageLimit) {
+
           return;
         }
 
-        // 新しいメッセージを生成
         const newMessage = await engine.generateMessage(
           debateState.stage,
           debateState.currentSpeaker,
@@ -153,15 +136,13 @@ export default function DebateViewer({
           const updatedState = {
             ...prev,
             messages: [...prev.messages, newMessage],
-            currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as
-              | 'pro'
-              | 'con',
+            currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as 'pro' | 'con',
           };
+
 
           return updatedState;
         });
       } catch (error) {
-        console.error('Error generating message:', error);
         setIsPlaying(false);
         
         // エラーの種類に応じて適切なメッセージを設定
@@ -187,13 +168,14 @@ export default function DebateViewer({
       }
     };
 
-    const timeout = setTimeout(generateNextMessage, 3000);
+    const timeout = setTimeout(generateNextMessage, 1000);
     return () => clearTimeout(timeout);
   }, [
     isPlaying,
     debateState.stage,
     debateState.currentSpeaker,
     engine,
+    isTransitioning,
   ]);
 
   const togglePlayPause = () => {
@@ -201,15 +183,11 @@ export default function DebateViewer({
       setDebateState((prev) => ({ ...prev, stage: 'opening' }));
     }
 
-    // ディベート開始時、自動読み上げが有効な場合は「ディベートを開始します」のメッセージを読み上げ
     if (!isPlaying && autoSpeech) {
       if (debateState.messages.length > 0) {
-        // 既存メッセージがある場合は最後のメッセージを読み上げ
-        const lastMessage =
-          debateState.messages[debateState.messages.length - 1];
+        const lastMessage = debateState.messages[debateState.messages.length - 1];
         speakMessage(lastMessage.content, lastMessage.speaker);
       } else {
-        // 初回開始時は開始アナウンス
         speakMessage('ディベートを開始します。', 'pro');
       }
     }
@@ -236,13 +214,10 @@ export default function DebateViewer({
         await navigator.share(shareData);
       } catch (error) {}
     } else {
-      // Web Share APIがサポートされていない場合はURLをコピー
       try {
         await navigator.clipboard.writeText(window.location.href);
         alert('URLをクリップボードにコピーしました！');
       } catch (error) {
-        console.error('クリップボードへのコピーに失敗しました:', error);
-        // フォールバック: URLを表示
         prompt('URLをコピーしてください:', window.location.href);
       }
     }
@@ -258,23 +233,17 @@ export default function DebateViewer({
     setDebateState(updatedState);
     setHasVoted(true);
 
-    // Save debate to database using server action
     try {
       const result = await saveDebateAction(updatedState);
       if (result.success) {
-        // Notify parent component to refresh data
         onDebateSaved?.();
-      } else {
-        console.error('Failed to save debate:', result.error);
       }
     } catch (error) {
-      console.error('Failed to save debate:', error);
     }
   };
 
   return (
     <div className="max-w-6xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
-      {/* ヘッダー */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
         <Button variant="outline" onClick={onBack} className="w-full sm:w-auto">
           ← 戻る
@@ -315,7 +284,6 @@ export default function DebateViewer({
         </div>
       </div>
 
-      {/* トピック表示 */}
       <Card>
         <CardHeader>
           <CardTitle className="text-lg sm:text-xl text-center px-2">
@@ -349,7 +317,6 @@ export default function DebateViewer({
         </CardHeader>
       </Card>
 
-      {/* 進行状況 */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-center justify-between mb-2">
@@ -364,11 +331,9 @@ export default function DebateViewer({
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* メイン: ディベートメッセージ */}
         <div className="lg:col-span-2 space-y-4">
           {debateState.stage === 'summary' ? (
             <div className="space-y-6">
-              {/* ディベート内容 */}
               <Card>
                 <CardHeader>
                   <CardTitle>ディベート内容</CardTitle>
@@ -385,7 +350,6 @@ export default function DebateViewer({
                 </CardContent>
               </Card>
 
-              {/* 投票カード */}
               <VotingCard
                 proModel={debateState.config.proModel}
                 conModel={debateState.config.conModel}
@@ -394,7 +358,6 @@ export default function DebateViewer({
                 winner={debateState.winner}
               />
 
-              {/* サマリーカード（投票後に表示） */}
               {hasVoted && debateState.winner && (
                 <SummaryCard summary={debateState.summary!} />
               )}
@@ -443,9 +406,7 @@ export default function DebateViewer({
           )}
         </div>
 
-        {/* サイドバー */}
         <div className="space-y-4">
-          {/* 証拠・引用 */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
@@ -472,7 +433,6 @@ export default function DebateViewer({
             </CardContent>
           </Card>
 
-          {/* 個人メモ・質問 */}
           <AudienceQA
             questions={debateState.audienceQuestions}
             onAddQuestion={(question) => {
