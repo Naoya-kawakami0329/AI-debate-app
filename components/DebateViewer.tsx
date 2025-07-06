@@ -49,7 +49,14 @@ export default function DebateViewer({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const isGeneratingRef = useRef(false);
 
-
+  useEffect(() => {
+    if (debateState.stage === 'setup') {
+      setDebateState((prev) => ({ ...prev, stage: 'opening' }));
+      setIsPlaying(true);
+    } else {
+      setIsPlaying(true);
+    }
+  }, []);
 
   const stageNames = {
     setup: '準備中',
@@ -145,7 +152,6 @@ export default function DebateViewer({
       } catch (error) {
         setIsPlaying(false);
         
-        // エラーの種類に応じて適切なメッセージを設定
         let errorMsg = 'AI処理中にエラーが発生しました';
         if (error instanceof Error) {
           if (error.message.includes('API key') || error.message.includes('API キー')) {
@@ -232,6 +238,10 @@ export default function DebateViewer({
       const result = await saveDebateAction(updatedState);
       if (result.success) {
         onDebateSaved?.();
+        
+        setTimeout(() => {
+          onBack();
+        }, 3000);
       }
     } catch (error) {
       console.error('Save debate error:', error);

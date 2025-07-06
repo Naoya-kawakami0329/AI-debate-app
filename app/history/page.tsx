@@ -28,7 +28,7 @@ export default function HistoryPage() {
   const loadRecentDebates = async () => {
     setIsLoading(true);
     try {
-      const result = await getRecentDebatesAction(20); // Load more debates for history page
+      const result = await getRecentDebatesAction(20); 
       if (result.success) {
         setRecentDebates(result.debates);
       } else {
@@ -75,7 +75,6 @@ export default function HistoryPage() {
           <CardContent>
             <div className="space-y-4">
               {isLoading ? (
-                // Loading skeleton
                 Array.from({ length: 5 }).map((_, index) => (
                   <Card
                     key={`debate-skeleton-${index}`}

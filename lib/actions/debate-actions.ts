@@ -11,7 +11,6 @@ export async function saveDebateAction(
     const debateId = await DatabaseService.saveDebate(debateState);
 
     if (debateId) {
-      // Revalidate the home page to refresh recent debates
       revalidatePath('/');
       return { success: true, debateId };
     } else {

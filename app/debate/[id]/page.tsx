@@ -16,7 +16,6 @@ export default function DebatePage() {
   useEffect(() => {
     if (!debateId) return;
 
-    // Try to load config from localStorage
     const savedConfig = localStorage.getItem(`debate-config-${debateId}`);
 
     if (savedConfig) {
@@ -39,7 +38,6 @@ export default function DebatePage() {
         router.push('/');
       }
     } else {
-      // No config found, redirect to home
       router.push('/');
     }
 
@@ -51,7 +49,6 @@ export default function DebatePage() {
   };
 
   const handleDebateSaved = () => {
-    // Clean up localStorage after saving
     localStorage.removeItem(`debate-config-${debateId}`);
   };
 

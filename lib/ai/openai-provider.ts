@@ -34,7 +34,19 @@ export class OpenAIProvider extends AIProvider {
         '申し訳ございません。応答を生成できませんでした。'
       );
     } catch (error) {
-      console.error('OpenAI API Error:', error);
+      if (error instanceof Error) {
+        console.error('OpenAI API Error:', error.message);
+        if (error.message.includes('timeout')) {
+          throw new Error('OpenAI API タイムアウト - ネットワークが不安定です');
+        }
+        if (error.message.includes('401')) {
+          throw new Error('OpenAI APIキーが無効です');
+        }
+        if (error.message.includes('429')) {
+          throw new Error('OpenAI API レート制限に達しました');
+        }
+        throw new Error(`OpenAI API エラー: ${error.message}`);
+      }
       throw new Error('OpenAI APIの呼び出しに失敗しました');
     }
   }

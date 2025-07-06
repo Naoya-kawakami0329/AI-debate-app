@@ -26,7 +26,7 @@ export class TrendsService {
       console.error('Error fetching trends:', errorMessage);
       return {
         trends: [],
-        lastUpdated: new Date().toISOString(),
+        lastUpdated: '',
       };
     }
   }
