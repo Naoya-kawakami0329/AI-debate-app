@@ -134,8 +134,7 @@ export default function DebateViewer({
 
         const newMessage = await engine.generateMessage(
           debateState.stage,
-          debateState.currentSpeaker,
-          debateState.messages
+          debateState.currentSpeaker
         );
 
         setDebateState((prev) => ({

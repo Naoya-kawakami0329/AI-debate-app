@@ -15,7 +15,6 @@ const STAGE_NAMES_JP = {
   setup: '準備中',
 } as const;
 
-const STAGE_ORDER: DebateStage[] = ['setup', 'opening', 'rebuttal', 'closing', 'summary'];
 
 export class DebateEngine {
   private debateState: DebateState;
@@ -37,8 +36,7 @@ export class DebateEngine {
 
   async generateMessage(
     stage: DebateStage,
-    speaker: 'pro' | 'con',
-    currentMessages?: DebateMessage[]
+    speaker: 'pro' | 'con'
   ): Promise<DebateMessage> {
     const model =
       speaker === 'pro'
@@ -54,7 +52,7 @@ export class DebateEngine {
 
       if (this.useRealAI) {
         try {
-          content = await this.generateRealAIMessage(stage, speaker, model, currentMessages);
+          content = await this.generateRealAIMessage(stage, speaker, model);
         } catch (error) {
           content = this.generateMockMessage(stage, speaker, model);
         }
@@ -81,7 +79,7 @@ export class DebateEngine {
       }
     } while (attempts < maxAttempts);
 
-    const evidence = await this.searchEvidence(content, speaker);
+    const evidence = await this.searchEvidence(content);
 
     return {
       id: `msg-${Date.now()}-${Math.random()}`,
@@ -98,8 +96,7 @@ export class DebateEngine {
   private async generateRealAIMessage(
     stage: DebateStage,
     speaker: 'pro' | 'con',
-    model: AIModel,
-    currentMessages?: DebateMessage[]
+    model: AIModel
   ): Promise<string> {
 
     const previousMessages = this.debateState.messages.map((msg) => ({
@@ -147,8 +144,7 @@ export class DebateEngine {
   }
 
   private async searchEvidence(
-    content: string,
-    speaker: 'pro' | 'con'
+    content: string
   ): Promise<Evidence[]> {
     try {
       const keyPoints = this.extractKeyPoints(content);
@@ -163,6 +159,7 @@ export class DebateEngine {
         return evidence.slice(0, 2);
       }
     } catch (error) {
+      console.error('Error searching evidence:', error);
     }
     return [];
   }
@@ -190,16 +187,6 @@ export class DebateEngine {
 
 
 
-  async nextStage(): Promise<DebateStage> {
-    const currentIndex = STAGE_ORDER.indexOf(this.debateState.stage);
-
-    if (currentIndex < STAGE_ORDER.length - 1) {
-      return STAGE_ORDER[currentIndex + 1];
-
-    }
-
-    return stage;
-  }
 
   generateSummary(): string {
     const topic = this.debateState.config.topic.title;
