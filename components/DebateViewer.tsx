@@ -47,8 +47,8 @@ export default function DebateViewer({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isGeneratingRef = useRef(false);
 
-  const [isTransitioning, setIsTransitioning] = useState(false);
 
 
   const stageNames = {
@@ -72,10 +72,10 @@ export default function DebateViewer({
       if (!autoSpeech) return;
 
       const voice = speaker === 'pro' ? 'alloy' : 'echo';
-
       try {
         await AudioService.synthesizeSpeech(content, { voice, speed: 0.9 });
       } catch (error) {
+        console.error('Speech synthesis error:', error);
       }
     },
     [autoSpeech]
@@ -84,7 +84,6 @@ export default function DebateViewer({
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
-
 
   useEffect(() => {
     if (debateState.messages.length > lastMessageCountRef.current) {
@@ -103,26 +102,33 @@ export default function DebateViewer({
     stage === 'opening' || stage === 'closing' ? 2 : 4;
 
   useEffect(() => {
-
-    if (!isPlaying || debateState.stage === 'summary' || debateState.stage === 'setup' || isTransitioning) return;
-
+    if (!isPlaying || debateState.stage === 'summary' || debateState.stage === 'setup') return;
 
     const generateNextMessage = async () => {
-      if (isGeneratingRef.current) return; // 既に処理中の場合は実行しない
+      if (isGeneratingRef.current) return;
       
-      isGeneratingRef.current = true; // 処理開始フラグを立てる
+      isGeneratingRef.current = true;
       
       try {
-        // 現在のステージでのメッセージ数をチェック
         const currentStageMessages = debateState.messages.filter(
           (m) => m.stage === debateState.stage
         );
 
-
         const messageLimit = getMessageLimit(debateState.stage);
         
         if (currentStageMessages.length >= messageLimit) {
-
+          const nextStage = 
+            debateState.stage === 'opening' ? 'rebuttal' :
+            debateState.stage === 'rebuttal' ? 'closing' :
+            debateState.stage === 'closing' ? 'summary' : null;
+          
+          if (nextStage) {
+            setDebateState(prev => ({
+              ...prev,
+              stage: nextStage as DebateStage,
+              currentSpeaker: 'pro'
+            }));
+          }
           return;
         }
 
@@ -132,16 +138,11 @@ export default function DebateViewer({
           debateState.messages
         );
 
-        setDebateState((prev) => {
-          const updatedState = {
-            ...prev,
-            messages: [...prev.messages, newMessage],
-            currentSpeaker: (prev.currentSpeaker === 'pro' ? 'con' : 'pro') as 'pro' | 'con',
-          };
-
-
-          return updatedState;
-        });
+        setDebateState((prev) => ({
+          ...prev,
+          messages: [...prev.messages, newMessage],
+          currentSpeaker: prev.currentSpeaker === 'pro' ? 'con' : 'pro',
+        }));
       } catch (error) {
         setIsPlaying(false);
         
@@ -161,22 +162,15 @@ export default function DebateViewer({
         
         setErrorMessage(errorMsg);
         
-        // 5秒後にエラーメッセージを自動的に非表示
         setTimeout(() => setErrorMessage(null), 5000);
       } finally {
-        isGeneratingRef.current = false; // 処理完了フラグをリセット
+        isGeneratingRef.current = false;
       }
     };
 
     const timeout = setTimeout(generateNextMessage, 1000);
     return () => clearTimeout(timeout);
-  }, [
-    isPlaying,
-    debateState.stage,
-    debateState.currentSpeaker,
-    engine,
-    isTransitioning,
-  ]);
+  }, [isPlaying, debateState.stage, debateState.currentSpeaker, engine]);
 
   const togglePlayPause = () => {
     if (debateState.stage === 'setup') {
@@ -184,8 +178,8 @@ export default function DebateViewer({
     }
 
     if (!isPlaying && autoSpeech) {
-      if (debateState.messages.length > 0) {
-        const lastMessage = debateState.messages[debateState.messages.length - 1];
+      const lastMessage = debateState.messages[debateState.messages.length - 1];
+      if (lastMessage) {
         speakMessage(lastMessage.content, lastMessage.speaker);
       } else {
         speakMessage('ディベートを開始します。', 'pro');
@@ -212,7 +206,9 @@ export default function DebateViewer({
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch (error) {}
+      } catch (error) {
+        console.error('Share error:', error);
+      }
     } else {
       try {
         await navigator.clipboard.writeText(window.location.href);
@@ -239,6 +235,7 @@ export default function DebateViewer({
         onDebateSaved?.();
       }
     } catch (error) {
+      console.error('Save debate error:', error);
     }
   };
 
