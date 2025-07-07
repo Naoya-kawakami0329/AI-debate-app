@@ -7,7 +7,7 @@ import { TrendsStorage } from '@/lib/services/trends-storage';
 export const dynamic = 'force-dynamic';
 
 let cachedTrends: { data: TrendingTopic[]; timestamp: number } | null = null;
-const CACHE_DURATION = 24 * 60 * 60 * 1000;
+const CACHE_DURATION = 12 * 60 * 60 * 1000;
 
 function shouldUseCachedData(): boolean {
   if (!cachedTrends) return false;
@@ -395,6 +395,7 @@ async function fetchTrendingFromNews(): Promise<TrendingTopic[]> {
 
 
 export async function GET(request: Request) {
+  const isCronRequest = request.headers.get('x-cron-request') === 'true';
 
   const trendsStorage = TrendsStorage.getInstance();
 
@@ -410,7 +411,7 @@ export async function GET(request: Request) {
       }
     }
 
-    if (shouldUseCachedData() && cachedTrends!.data.length > 0) {
+    if (!isCronRequest && shouldUseCachedData() && cachedTrends!.data.length > 0) {
       return NextResponse.json({
         trends: cachedTrends!.data,
         lastUpdated: new Date(cachedTrends!.timestamp).toISOString(),
