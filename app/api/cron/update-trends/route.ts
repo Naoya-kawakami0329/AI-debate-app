@@ -14,6 +14,7 @@ export async function GET(request: Request) {
         headers: {
           'Cache-Control': 'no-cache',
           Authorization: `Bearer ${process.env.CRON_SECRET}`,
+          'X-Cron-Request': 'true',
         },
       }
     );
