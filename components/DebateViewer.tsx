@@ -47,6 +47,7 @@ export default function DebateViewer({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const lastMessageCountRef = useRef(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const isGeneratingRef = useRef(false);
 
   useEffect(() => {
@@ -89,7 +90,9 @@ export default function DebateViewer({
   );
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
   };
 
   useEffect(() => {
@@ -250,35 +253,67 @@ export default function DebateViewer({
 
   return (
     <div className="max-w-6xl mx-auto p-2 sm:p-4 space-y-4 sm:space-y-6">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4">
-        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center sm:justify-between gap-2 sm:gap-4">
+        <Button
+          onClick={togglePlayPause}
+          disabled={debateState.stage === 'summary'}
+          className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto order-1 sm:hidden"
+        >
+          {isPlaying ? (
+            <Pause className="h-4 w-4 mr-2" />
+          ) : (
+            <Play className="h-4 w-4 mr-2" />
+          )}
+          {isPlaying ? '一時停止' : '再生'}
+        </Button>
+        <Button variant="outline" onClick={onBack} className="w-full sm:w-auto order-2 sm:order-1">
           ← 戻る
         </Button>
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 w-full sm:w-auto">
+        <Button
+          variant="outline"
+          onClick={toggleAutoSpeech}
+          className={`${autoSpeech ? 'bg-blue-100' : ''} w-full sm:w-auto order-3 sm:hidden`}
+        >
+          {autoSpeech ? (
+            <Volume2 className="h-4 w-4 mr-2" />
+          ) : (
+            <VolumeX className="h-4 w-4 mr-2" />
+          )}
+          <span className="hidden sm:inline">自動読み上げ</span>
+        </Button>
+        <Button
+          variant="outline"
+          onClick={handleShare}
+          className="w-full sm:w-auto order-4 sm:hidden"
+        >
+          <Share2 className="h-4 w-4 mr-2" />
+          <span className="hidden sm:inline">共有</span>
+        </Button>
+        <div className="hidden sm:flex flex-row items-center gap-4 w-auto order-2">
           <Button
             variant="outline"
             onClick={handleShare}
-            className="w-full sm:w-auto"
+            className="w-auto"
           >
             <Share2 className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">共有</span>
+            共有
           </Button>
           <Button
             variant="outline"
             onClick={toggleAutoSpeech}
-            className={`${autoSpeech ? 'bg-blue-100' : ''} w-full sm:w-auto`}
+            className={`${autoSpeech ? 'bg-blue-100' : ''} w-auto`}
           >
             {autoSpeech ? (
               <Volume2 className="h-4 w-4 mr-2" />
             ) : (
               <VolumeX className="h-4 w-4 mr-2" />
             )}
-            <span className="hidden sm:inline">自動読み上げ</span>
+            自動読み上げ
           </Button>
           <Button
             onClick={togglePlayPause}
             disabled={debateState.stage === 'summary'}
-            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-full sm:w-auto"
+            className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 w-auto"
           >
             {isPlaying ? (
               <Pause className="h-4 w-4 mr-2" />
@@ -348,7 +383,10 @@ export default function DebateViewer({
                   </p>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+                  <div 
+                    ref={messagesContainerRef}
+                    className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto"
+                  >
                     {debateState.messages.map((message) => (
                       <MessageCard key={message.id} message={message} />
                     ))}
@@ -373,7 +411,10 @@ export default function DebateViewer({
               <h2 className="text-lg sm:text-xl font-semibold">
                 ディベート進行
               </h2>
-              <div className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto">
+              <div 
+                ref={messagesContainerRef}
+                className="space-y-4 max-h-[400px] sm:max-h-[600px] overflow-y-auto"
+              >
                 {debateState.messages.map((message) => (
                   <MessageCard key={message.id} message={message} />
                 ))}
