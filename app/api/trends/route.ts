@@ -7,12 +7,22 @@ import { TrendsStorage } from '@/lib/services/trends-storage';
 export const dynamic = 'force-dynamic';
 
 let cachedTrends: { data: TrendingTopic[]; timestamp: number } | null = null;
-const CACHE_DURATION = 5 * 60 * 1000; // 5分に短縮して、更新頻度を高める
 
 function shouldUseCachedData(): boolean {
   if (!cachedTrends) return false;
 
-  return new Date().getTime() - cachedTrends.timestamp < CACHE_DURATION;
+  const now = new Date();
+  const lastUpdate = new Date(cachedTrends.timestamp);
+  
+  if (
+    lastUpdate.getFullYear() === now.getFullYear() &&
+    lastUpdate.getMonth() === now.getMonth() &&
+    lastUpdate.getDate() === now.getDate()
+  ) {
+    return true;
+  }
+
+  return now.getHours() < 12;
 }
 
 async function fetchGoogleTrends(): Promise<TrendingTopic[]> {
