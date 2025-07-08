@@ -7,7 +7,7 @@ import { TrendsStorage } from '@/lib/services/trends-storage';
 export const dynamic = 'force-dynamic';
 
 let cachedTrends: { data: TrendingTopic[]; timestamp: number } | null = null;
-const CACHE_DURATION = 12 * 60 * 60 * 1000;
+const CACHE_DURATION = 5 * 60 * 1000; // 5分に短縮して、更新頻度を高める
 
 function shouldUseCachedData(): boolean {
   if (!cachedTrends) return false;
@@ -396,6 +396,10 @@ async function fetchTrendingFromNews(): Promise<TrendingTopic[]> {
 
 export async function GET(request: Request) {
   const isCronRequest = request.headers.get('x-cron-request') === 'true';
+  
+  if (isCronRequest) {
+    console.log('[API] CRONリクエスト受信:', new Date().toISOString());
+  }
 
   const trendsStorage = TrendsStorage.getInstance();
 
