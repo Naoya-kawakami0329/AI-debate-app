@@ -406,6 +406,10 @@ async function fetchTrendingFromNews(): Promise<TrendingTopic[]> {
 
 export async function GET(request: Request) {
   const isCronRequest = request.headers.get('x-cron-request') === 'true';
+  
+  if (isCronRequest) {
+    console.log('[API] CRONリクエスト受信:', new Date().toISOString());
+  }
 
   const trendsStorage = TrendsStorage.getInstance();
 
