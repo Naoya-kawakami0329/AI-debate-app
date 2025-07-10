@@ -14,15 +14,22 @@ function shouldUseCachedData(): boolean {
   const now = new Date();
   const lastUpdate = new Date(cachedTrends.timestamp);
   
+  // 日本時間に変換
+  const nowJST = new Date(now.getTime() + 9 * 60 * 60 * 1000);
+  const lastUpdateJST = new Date(lastUpdate.getTime() + 9 * 60 * 60 * 1000);
+  
+  // 同じ日付かつ、最後の更新が日本時間12時以降ならキャッシュを使用
   if (
-    lastUpdate.getFullYear() === now.getFullYear() &&
-    lastUpdate.getMonth() === now.getMonth() &&
-    lastUpdate.getDate() === now.getDate()
+    nowJST.getUTCFullYear() === lastUpdateJST.getUTCFullYear() &&
+    nowJST.getUTCMonth() === lastUpdateJST.getUTCMonth() &&
+    nowJST.getUTCDate() === lastUpdateJST.getUTCDate()
   ) {
-    return true;
+    // 最後の更新が12時以降（UTC+9で計算）
+    const updateHourJST = (lastUpdate.getUTCHours() + 9) % 24;
+    return updateHourJST >= 12;
   }
-
-  return now.getHours() < 12;
+  
+  return false;
 }
 
 async function fetchGoogleTrends(): Promise<TrendingTopic[]> {
