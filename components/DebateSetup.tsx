@@ -39,6 +39,9 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
   const [isLoadingTrends, setIsLoadingTrends] = useState(true);
   const [availableTopics, setAvailableTopics] = useState<DebateTopic[]>([]);
   const [availableModels, setAvailableModels] = useState<AIModel[]>([]);
+  const [displayedRecommendedTopics, setDisplayedRecommendedTopics] = useState<
+    DebateTopic[]
+  >([]);
 
   const handleStart = () => {
     if (!selectedTopic && !customTopic) return;
@@ -65,6 +68,36 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
     loadTrends();
     loadTopicsAndModels();
   }, []);
+
+  // トレンドと推奨トピックをミックスして最大6件表示
+  useEffect(() => {
+    const mixedTopics: DebateTopic[] = [];
+
+    // トレンドからトピックを生成(最大3件)
+    const trendBasedTopics = trendingTopics.slice(0, 3).map((trend) => ({
+      id: `trend-${trend.keyword}`,
+      title: `${trend.keyword}について議論する`,
+      description: trend.description,
+      category: trend.category,
+      trending: true,
+    }));
+
+    // データベースの推奨トピック(最大3件)
+    const dbTopics = availableTopics.slice(0, 3);
+
+    // ミックス: トレンド、DB、トレンド、DB... の順で交互に追加
+    const maxLength = Math.max(trendBasedTopics.length, dbTopics.length);
+    for (let i = 0; i < maxLength && mixedTopics.length < 6; i++) {
+      if (i < trendBasedTopics.length && mixedTopics.length < 6) {
+        mixedTopics.push(trendBasedTopics[i]);
+      }
+      if (i < dbTopics.length && mixedTopics.length < 6) {
+        mixedTopics.push(dbTopics[i]);
+      }
+    }
+
+    setDisplayedRecommendedTopics(mixedTopics);
+  }, [trendingTopics, availableTopics]);
 
   const loadTrends = async () => {
     setIsLoadingTrends(true);
@@ -192,7 +225,7 @@ export default function DebateSetup({ onStartDebate }: DebateSetupProps) {
           <div className="space-y-3">
             <h3 className="font-semibold text-sm">推奨トピック</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-              {availableTopics.map((topic) => (
+              {displayedRecommendedTopics.map((topic) => (
                 <Card
                   key={topic.id}
                   className={`cursor-pointer transition-all hover:shadow-md ${

@@ -33,11 +33,11 @@ export async function POST(request: NextRequest) {
       speed: speed,
     });
 
-    // Convert to buffer
-    const buffer = Buffer.from(await mp3.arrayBuffer());
+    // Get array buffer from response
+    const arrayBuffer = await mp3.arrayBuffer();
 
     // Return audio as response
-    return new NextResponse(buffer, {
+    return new NextResponse(arrayBuffer, {
       status: 200,
       headers: {
         'Content-Type': 'audio/mpeg',
